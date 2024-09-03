@@ -38,16 +38,16 @@ const ShippingAddress: FC<Props> = ({
       postalCode: "",
       addressType: AddressType.home,
     },
-    values: {
-      firstName: contactInfo?.name.split(" ")[0] ?? "",
-      lastName: contactInfo?.name.split(" ")[1] ?? "",
-      address1: "1234 Main St",
-      city: "Anytown",
-      country: "US",
-      state: "CA",
-      postalCode: "12345",
-      addressType: AddressType.home,
-    }
+    // values: {
+    //   firstName: contactInfo?.name.split(" ")[0] ?? "",
+    //   lastName: contactInfo?.name.split(" ")[1] ?? "",
+    //   address1: "1234 Main St",
+    //   city: "Anytown",
+    //   country: "US",
+    //   state: "CA",
+    //   postalCode: "12345",
+    //   addressType: AddressType.home,
+    // }
   })
 
   const [availableCountries, setAvailableCountries] = useState<{name: string, code: string}[]>([]);

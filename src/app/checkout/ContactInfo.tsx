@@ -25,12 +25,12 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
 
   const { handleSubmit, control, watch } = useForm<IContactFormInputs>({
     defaultValues: contactInfo ?? {
-      // name: "",
-      // phone: "",
-      // email: "",
-      name: "Chuck Norris",
-      phone: "15555555555",
-      email: "vponce@nerdunited.com",
+      name: "",
+      phone: "",
+      email: "",
+      // name: "Chuck Norris",
+      // phone: "15555555555",
+      // email: "vponce@nerdunited.com",
     },
   })
 
