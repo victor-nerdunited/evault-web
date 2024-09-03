@@ -61,6 +61,24 @@ const ShippingAddress: FC<Props> = ({
     && watch("postalCode") 
     && watch("addressType");
 
+  useEffect(() => {
+    const fetchCountries = async () => {
+      const data = [
+        { name: "United States", code: "US" },
+        { name: "Canada", code: "CA" },
+        { name: "United Kingdom", code: "GB" },
+        { name: "Australia", code: "AU" },
+        { name: "Germany", code: "DE" },
+        { name: "France", code: "FR" },
+        { name: "Japan", code: "JP" },
+        { name: "China", code: "CN" },
+        { name: "India", code: "IN" },
+      ]
+      setAvailableCountries(data.map((country: any) => ({ name: country.name.common, code: country.cca2 })));
+    };
+    fetchCountries();
+  }, []);
+
   const onSubmit: SubmitHandler<IShippingAddress> = (data) => {
     dispatchShippingAddress(data);
     onCloseActive(data);
