@@ -1,4 +1,5 @@
-import { Sku } from "@commercelayer/sdk";
+const PRICE_MULTIPLIER_GOLD = 1.10;
+const PRICE_MULTIPLIER_SILVER = 1.40;
 
 export interface MineralPrices {
   goldPrice: number;
@@ -51,8 +52,8 @@ export const getPrices = async (forceRefresh: boolean = false): Promise<MineralP
 
 const toPrices = (data: any): MineralPrices => {
   return {
-    goldPrice: data.items[0].xauPrice,
-    silverPrice: data.items[0].xagPrice,
+    goldPrice: data.items[0].xauPrice * PRICE_MULTIPLIER_GOLD,
+    silverPrice: data.items[0].xagPrice * PRICE_MULTIPLIER_SILVER,
   };
 }
 
