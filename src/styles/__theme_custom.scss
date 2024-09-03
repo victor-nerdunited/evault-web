@@ -351,3 +351,9 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     }
   }
 }
+
+
+/* my stuffs */
+input[aria-invalid="true"] {
+  border: 1px solid #cc0000 ;
+}

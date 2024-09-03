@@ -19,7 +19,8 @@ const SectionGridFeatureItems: FC<SectionGridFeatureItemsProps> = ({
         className={`grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 `}
       >
         {data.map((item, index) => (
-          <ProductCard data={item} key={index} />
+          // todo: fix type
+          <ProductCard data={item as any} key={index} />
         ))}
       </div>
       <div className="flex mt-16 justify-center items-center">

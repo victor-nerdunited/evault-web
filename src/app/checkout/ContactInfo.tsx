@@ -1,17 +1,46 @@
 import Label from "@/components/Label/Label";
-import React, { FC } from "react";
+import React, { FC, useMemo, useState } from "react";
 import ButtonPrimary from "@/shared/Button/ButtonPrimary";
 import ButtonSecondary from "@/shared/Button/ButtonSecondary";
 import Checkbox from "@/shared/Checkbox/Checkbox";
 import Input from "@/shared/Input/Input";
+import { useForm, Controller, SubmitHandler } from "react-hook-form"
+import { useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
 
 interface Props {
   isActive: boolean;
   onOpenActive: () => void;
-  onCloseActive: () => void;
+  onCloseActive: (contactInfo: IContactFormInputs) => void;
+}
+
+export interface IContactFormInputs {
+  name: string;
+  phone: string;
+  email: string;
 }
 
 const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
+  const { contactInfo } = useCheckout();
+  const { dispatchContactInfo } = useCheckoutDispatch();
+
+  const { handleSubmit, control, watch } = useForm<IContactFormInputs>({
+    defaultValues: contactInfo ?? {
+      // name: "",
+      // phone: "",
+      // email: "",
+      name: "Chuck Norris",
+      phone: "15555555555",
+      email: "vponce@nerdunited.com",
+    },
+  })
+
+  const isCompleted = watch("name") && watch("phone") && watch("email");
+
+  const onSubmit: SubmitHandler<IContactFormInputs> = (data) => {
+    dispatchContactInfo(data);
+    onCloseActive(data);
+  };
+
   const renderAccount = () => {
     return (
       <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden z-0">
@@ -49,7 +78,7 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
           <div className="sm:ml-8">
             <h3 className=" text-slate-700 dark:text-slate-300 flex ">
               <span className="uppercase tracking-tight">CONTACT INFO</span>
-              <svg
+              <svg style={{ display: isCompleted ? "" : "none" }}
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth="2.5"
@@ -63,12 +92,14 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
                 />
               </svg>
             </h3>
-            <div className="font-semibold mt-1 text-sm">
-              <span className="">Enrico Smith</span>
-              <span className="ml-3 tracking-tighter">+855 - 666 - 7744</span>
+            <div className="mt-1 text-sm" hidden={isActive}>
+              <div className="mt-3">{watch("name")}</div>
+              <div className="tracking-tighter">{watch("phone")}</div>
+              <div className="tracking-tighter">{watch("email")}</div>
             </div>
           </div>
           <button
+            hidden={isActive}
             className="py-2 px-4 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 mt-5 sm:mt-0 sm:ml-auto text-sm font-medium rounded-lg"
             onClick={() => onOpenActive()}
           >
@@ -81,46 +112,93 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
           }`}
         >
           <div className="flex justify-between flex-wrap items-baseline">
-            <h3 className="text-lg font-semibold">Contact infomation</h3>
-            <span className="block text-sm my-1 md:my-0">
+            {/* <span className="block text-sm my-1 md:my-0">
               Do not have an account?{` `}
               <a href="##" className="text-primary-500 font-medium">
                 Log in
               </a>
-            </span>
+            </span> */}
           </div>
-          <div className="max-w-lg">
-            <Label className="text-sm">Your phone number</Label>
-            <Input className="mt-1.5" defaultValue={"+808 xxx"} type={"tel"} />
-          </div>
-          <div className="max-w-lg">
-            <Label className="text-sm">Email address</Label>
-            <Input className="mt-1.5" type={"email"} />
-          </div>
-          <div>
-            <Checkbox
-              className="!text-sm"
-              name="uudai"
-              label="Email me news and offers"
-              defaultChecked
-            />
-          </div>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="max-w-lg">
+              <Label className="text-sm">Your name</Label>
+              <Controller
+                name="name"
+                control={control}
+                rules={{ required: "Name is required" }}
+                render={({ field, fieldState }) =>
+                  <Input
+                    {...field}
+                    className="mt-1.5"
+                    aria-invalid={fieldState.error ? "true" : "false"}
+                    placeholder={fieldState.error?.message}
+                  />
+                }
+              />
+            </div>
+            <div className="max-w-lg">
+              <Label className="text-sm">Your phone number</Label>
+              <Controller
+                name="phone"
+                control={control}
+                rules={{ required: "Phone is required", pattern: { value: /^\+?[1-9][0-9]{7,14}$/, message: "Invalid phone number" } }}
+                render={({ field, fieldState }) =>
+                  <Input
+                    {...field}
+                    className="mt-1.5"
+                    type={"tel"}
+                    pattern="^\+?[1-9][0-9]{7,14}$"
+                    minLength={7}
+                    maxLength={14}
+                    aria-invalid={fieldState.error ? "true" : "false"}
+                    placeholder={fieldState.error?.message ?? "15555555555"}
+                  />
+                }
+              />
+            </div>
+            <div className="max-w-lg">
+              <Label className="text-sm">Email address</Label>
+              <Controller
+                name="email"
+                control={control}
+                rules={{ required: "Email is required", pattern: { value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, message: "Invalid email address" } }}
+                render={({ field, fieldState }) =>
+                  <Input
+                    {...field}
+                    className="mt-1.5"
+                    type={"email"}
+                    aria-invalid={fieldState.error ? "true" : "false"}
+                    placeholder={fieldState.error?.message}
+                  />
+                }
+              />
+            </div>
+            {/* <div>
+              <Checkbox
+                className="!text-sm"
+                name="uudai"
+                label="Email me news and offers"
+                defaultChecked
+              />
+            </div> */}
 
-          {/* ============ */}
-          <div className="flex flex-col sm:flex-row pt-6">
-            <ButtonPrimary
-              className="sm:!px-7 shadow-none"
-              onClick={() => onCloseActive()}
-            >
-              Save and next to Shipping
-            </ButtonPrimary>
-            <ButtonSecondary
-              className="mt-3 sm:mt-0 sm:ml-3"
-              onClick={() => onCloseActive()}
-            >
-              Cancel
-            </ButtonSecondary>
-          </div>
+            {/* ============ */}
+            <div className="flex flex-col sm:flex-row pt-6">
+              <ButtonPrimary
+                className="sm:!px-7 shadow-none"
+                // onClick={() => onCloseActive()}
+                type="submit"
+              >
+                Save
+              </ButtonPrimary>
+              {/* <ButtonSecondary
+                className="mt-3 sm:mt-0 sm:ml-3"
+                onClick={() => onCloseActive()}
+              >
+                Cancel
+              </ButtonSecondary> */}
+            </div>
+          </form>
         </div>
       </div>
     );

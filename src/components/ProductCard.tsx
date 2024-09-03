@@ -1,6 +1,6 @@
 "use client";
 
-import React, { FC, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 import LikeButton from "./LikeButton";
 import Prices from "./Prices";
 import { ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
@@ -18,11 +18,19 @@ import Image from "next/image";
 import Link from "next/link";
 import NcImage from "@/shared/NcImage/NcImage";
 import { Product } from "@chec/commerce.js/types/product";
-import { commerce } from "@/utils/commercejs";
+//import { commerce } from "@/utils/commercejs";
+import { useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
+//import { Cart } from "@chec/commerce.js/types/cart";
+import { LineItem, LineItemCreate, LineItemUpdate, Order, OrderCreate, Sku } from "@commercelayer/sdk";
+import { useCommerce } from "@/utils/commercejs";
+import { getPrice, getPrices } from "@/utils/priceUtil";
+import { getTokenPrice } from "@/utils/tokenPrice";
+import { useTokenPrice } from "@/hooks/useTokenprice";
+import { usePrices } from "@/hooks/usePrices";
 
 export interface ProductCardProps {
   className?: string;
-  data: Product;
+  data: Sku;
   isLiked?: boolean;
 }
 
@@ -31,27 +39,65 @@ const ProductCard: FC<ProductCardProps> = ({
   data,
   isLiked,
 }) => {
+  const commerceLayer = useCommerce()!;
+  //const price = data.prices?.[0].amount_float;
   const {
-    name,
-    price,
     description,
-    // variants,
-    // variantType,
-    // status,
-    image,
-    // rating,
     id,
+    image_url,
+    name,
+    // rating,
     // numberOfReviews,
     // sizes,
+    code,
   } = data;
 
   const [variantActive, setVariantActive] = useState(0);
   const [showModalQuickView, setShowModalQuickView] = useState(false);
   const router = useRouter();
+  const { cart } = useCheckout();
+  const { dispatchCart } = useCheckoutDispatch();
+  const [price, setPrice] = useState<number>(0);
+  const { tokenPrice } = useTokenPrice();
+  const { prices } = usePrices();
+
+  useEffect(() => {
+    const fetchPrices = async () => {
+      const price = await getPrice(prices, name, description ?? "", code ?? "", tokenPrice);
+      setPrice(price);
+    }
+    fetchPrices();
+  }, [tokenPrice]);
 
   const notifyAddTocart = async () => {
-    const response = await commerce.cart.add(id, 1);
-    console.log(response);
+    let order = cart;
+    if (!order) {
+      order = await commerceLayer.orders.create({ guest: true } as OrderCreate);
+    }
+    const lineItem = order.line_items?.find(li => li.sku_code === data.code);
+    if (lineItem) {
+      const lineItemUpdate: LineItemUpdate = {
+        id: lineItem.id,
+        quantity: lineItem.quantity + 1
+      };
+      await commerceLayer.line_items.update(lineItemUpdate);
+    } else {
+      const lineItemCreate: LineItemCreate = {
+        item: data,
+        quantity: 1,
+        order
+      };
+      await commerceLayer.line_items.create(lineItemCreate); 
+    }
+    order = await commerceLayer.orders.retrieve(order.id, {
+      include: ["line_items"]
+    });
+    console.log("[ProductCard] order", order);
+    dispatchCart(order as unknown as Order);
+
+    //const response = await commerce.cart.add(id, 1);
+    //dispatchCart(response as unknown as Cart);
+    
     toast.custom(
       (t) => (
         <Transition
@@ -84,11 +130,11 @@ const ProductCard: FC<ProductCardProps> = ({
   const renderProductCartOnNotify = () => {
     return (
       <div className="flex ">
-        <div className="h-24 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100">
+        <div className="h-24 w-20 flex-shrink-0 overflow-hidden rounded-xl">
           <Image
             width={80}
             height={96}
-            src={image?.url || ""}
+            src={image_url || ""}
             alt={name}
             className="absolute object-contain object-center"
           />
@@ -106,7 +152,7 @@ const ProductCard: FC<ProductCardProps> = ({
                   <span className="mx-2 border-s border-slate-200 dark:border-slate-700 h-4"></span>
                 </p>
               </div>
-              <Prices price={price.raw} className="mt-0.5" />
+              <Prices price={price ?? 0} className="mt-0.5" />
             </div>
           </div>
           <div className="flex flex-1 items-end justify-between text-sm">
@@ -191,7 +237,7 @@ const ProductCard: FC<ProductCardProps> = ({
           {/* <Link href={"/product-detail"} className="block"> */}
             <NcImage
               containerClassName="flex aspect-w-11 aspect-h-12 w-full h-0"
-              src={image?.url || ""}
+              src={image_url || ""}
               className="object-contain w-full h-full"
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1200px) 50vw, 40vw"
@@ -211,12 +257,12 @@ const ProductCard: FC<ProductCardProps> = ({
               {name}
             </h2>
             <p className={`text-sm text-slate-500 dark:text-slate-400 mt-1 `}>
-              <div dangerouslySetInnerHTML={{ __html: description }} />
+              <div dangerouslySetInnerHTML={{ __html: description ?? "" }} />
             </p>
           </div>
 
           <div className="flex justify-between items-end ">
-            <Prices price={price.raw} />
+            <Prices price={price ?? 0} />
             {/* <div className="flex items-center mb-0.5">
               <StarIcon className="w-5 h-5 pb-[1px] text-amber-400" />
               <span className="text-sm ms-1 text-slate-500 dark:text-slate-400">

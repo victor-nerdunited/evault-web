@@ -1,11 +1,16 @@
 "use client";
 
 import Label from "@/components/Label/Label";
-import React, { FC, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 import ButtonPrimary from "@/shared/Button/ButtonPrimary";
 import ButtonSecondary from "@/shared/Button/ButtonSecondary";
 import Input from "@/shared/Input/Input";
 import Radio from "@/shared/Radio/Radio";
+import { ConnectKitButton, SIWESession, useSIWE } from "connectkit";
+import { useAccount, useAccountEffect, useBalance, useClient, useConfig, useDisconnect, useEnsAvatar, useEnsName, usePublicClient } from "wagmi";
+import { getBalance } from "@wagmi/core";
+import { getPrices } from "@/utils/priceUtil";
+import { ELMT_TOKEN_ADDRESS } from "@/lib/web3/constants";
 
 interface Props {
   isActive: boolean;
@@ -21,6 +26,42 @@ const PaymentMethod: FC<Props> = ({
   const [mothodActive, setMethodActive] = useState<
     "Credit-Card" | "Internet-banking" | "Wallet"
   >("Credit-Card");
+  const [elmtBalance, setElmtBalance] = useState(0);
+  const config = useConfig();
+
+  useEffect(() => {
+    const fetchPrices = async () => {
+      const prices = await getPrices();
+      console.log("price", prices);
+    }
+    fetchPrices();
+  }, []);
+
+  useAccountEffect({
+    onConnect: async (data) => {
+      console.log("Connected to Ethereum network", data);
+      const balance = await getBalance(config,{
+        address: data.address,
+        token: ELMT_TOKEN_ADDRESS
+      });
+      console.log("balance", balance);
+      setElmtBalance(Number(balance.value) / (10 ** Number(balance.decimals)));
+    },
+    onDisconnect: () => {
+      console.log("Disconnected from Ethereum network");
+      setElmtBalance(0);
+    },
+  });
+
+  const onConnectWallet = async () => {
+    // const connected = await web3?.connect();
+    // if (connected) {
+    //   console.log("Connected to Ethereum network");
+    // } else {
+    //   console.log("Failed to connect to Ethereum network");
+    // }
+    console.log("connect wallet");
+  };
 
   const renderDebitCredit = () => {
     const active = mothodActive === "Credit-Card";
@@ -324,6 +365,47 @@ const PaymentMethod: FC<Props> = ({
     );
   };
 
+  const RenderAccount = () => {
+    const { address } = useAccount()
+    const { disconnect } = useDisconnect()
+    const { data: ensName } = useEnsName({ address })
+    const { data: ensAvatar } = useEnsAvatar({ name: ensName! })
+    const { data: balance } = useBalance({ address, token: ELMT_TOKEN_ADDRESS })
+  
+    return (
+      <div>
+        {ensAvatar && <img alt="ENS Avatar" src={ensAvatar} />}
+        {address && <div>{ensName ? `${ensName} (${address})` : address}</div>}
+        {address && balance && <div>Balance: {balance.value}</div>}
+        <button onClick={() => disconnect()}>Disconnect</button>
+      </div>
+    )
+  }
+
+  const renderCrypto = () => {
+    return (
+      <div className="flex items-start space-x-4 sm:space-x-6">
+        <div className="flex pt-6">
+          {/* <ButtonSecondary className="ml-3" onClick={onConnectWallet}>
+            Connect Wallet
+          </ButtonSecondary> */}
+          {/* <ConnectKitButton.Custom>
+            {({ isConnected, isConnecting, show, hide, address, ensName, chain }) => {
+              return <RenderAccount />
+            }}
+          </ConnectKitButton.Custom> */}
+          <ConnectKitButton />
+        </div>
+        {elmtBalance ?
+          <div className="flex pt-8">
+            Your balance: {elmtBalance} ELMT
+          </div>
+          : null
+        }
+      </div>
+    );
+  };
+
   const renderPaymentMethod = () => {
     return (
       <div className="border border-slate-200 dark:border-slate-700 rounded-xl ">
@@ -378,24 +460,7 @@ const PaymentMethod: FC<Props> = ({
           <div className="sm:ml-8">
             <h3 className=" text-slate-700 dark:text-slate-400 flex ">
               <span className="uppercase tracking-tight">PAYMENT METHOD</span>
-              <svg
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="2.5"
-                stroke="currentColor"
-                className="w-5 h-5 ml-3 text-slate-900"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4.5 12.75l6 6 9-13.5"
-                />
-              </svg>
             </h3>
-            <div className="font-semibold mt-1 text-sm">
-              <span className="">Google / Apple Wallet</span>
-              <span className="ml-3">xxx-xxx-xx55</span>
-            </div>
           </div>
           <button
             className="py-2 px-4 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 mt-5 sm:mt-0 sm:ml-auto text-sm font-medium rounded-lg"
@@ -410,16 +475,12 @@ const PaymentMethod: FC<Props> = ({
             isActive ? "block" : "hidden"
           }`}
         >
-          {/* ==================== */}
-          <div>{renderDebitCredit()}</div>
-
-          {/* ==================== */}
+          {/* <div>{renderDebitCredit()}</div>
           <div>{renderInterNetBanking()}</div>
+          <div>{renderWallet()}</div> */}
+          <div>{renderCrypto()}</div>
 
-          {/* ==================== */}
-          <div>{renderWallet()}</div>
-
-          <div className="flex pt-6">
+          {/* <div className="flex pt-6">
             <ButtonPrimary
               className="w-full max-w-[240px]"
               onClick={onCloseActive}
@@ -429,7 +490,7 @@ const PaymentMethod: FC<Props> = ({
             <ButtonSecondary className="ml-3" onClick={onCloseActive}>
               Cancel
             </ButtonSecondary>
-          </div>
+          </div> */}
         </div>
       </div>
     );

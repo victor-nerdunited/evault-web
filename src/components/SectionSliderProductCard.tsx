@@ -84,7 +84,8 @@ const SectionSliderProductCard: FC<SectionSliderProductCardProps> = ({
           <ul className="glide__slides">
             {data.map((item, index) => (
               <li key={index} className={`glide__slide ${itemClassName}`}>
-                <ProductCard data={item} />
+                // todo: fix type
+                <ProductCard data={item as any} />
               </li>
             ))}
           </ul>

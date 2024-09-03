@@ -32,7 +32,8 @@ const PageCollection2 = ({}) => {
               <div className="flex-1 ">
                 <div className="flex-1 grid sm:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-10 ">
                   {PRODUCTS.map((item, index) => (
-                    <ProductCard data={item} key={index} />
+                    // todo: fix type
+                    <ProductCard data={item as any} key={index} />
                   ))}
                 </div>
               </div>

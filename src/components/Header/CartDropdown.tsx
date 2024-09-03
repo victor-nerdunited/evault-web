@@ -7,35 +7,54 @@ import {
   Transition,
 } from "@/app/headlessui";
 import Prices from "@/components/Prices";
+import { usePrices } from "@/hooks/usePrices";
+import { useTokenPrice } from "@/hooks/useTokenprice";
+import { useCheckout } from "@/lib/CheckoutProvider";
 //import { Product, PRODUCTS } from "@/data/data";
 import ButtonPrimary from "@/shared/Button/ButtonPrimary";
 import ButtonSecondary from "@/shared/Button/ButtonSecondary";
-import { commerce } from "@/utils/commercejs";
-import { Cart } from "@chec/commerce.js/types/cart";
-import { LineItem } from "@chec/commerce.js/types/line-item";
+import { getPrice, getPrices, MineralPrices } from "@/utils/priceUtil";
+import { getTokenPrice } from "@/utils/tokenPrice";
+import { LineItem } from "@commercelayer/sdk";
+//import { Cart } from "@chec/commerce.js/types/cart";
+//import { LineItem } from "@chec/commerce.js/types/line-item";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function CartDropdown() {
-  const [cart, setCart] = useState<Cart | null>(null);
+  // const [cart, setCart] = useState<Cart | null>(null);
+  // useEffect(() => {
+  //   const fetchCart = async () => {
+  //     const cart = await getCart();
+  //     setCart(cart);
+  //   };
+  //   fetchCart();
+  // }, []);
+  const { cart } = useCheckout();
+  const { tokenPrice } = useTokenPrice();
+  const { prices } = usePrices();
+
+  const [subtotal, setSubtotal] = useState(0);
   useEffect(() => {
-    const fetchCart = async () => {
-      const cart = await commerce.cart.retrieve();
-      setCart(cart);
-    };
-    fetchCart();
-  }, []);
+    const _subtotal = cart?.line_items?.reduce((acc, item) => {
+      const price = getPrice(prices!, item.name!, item.sku?.description ?? "", item.sku_code ?? "", tokenPrice);
+      return acc + price * item.quantity;
+    }, 0) ?? 0;
+    setSubtotal(_subtotal);
+  }, [cart]);
 
   const renderProduct = (item: LineItem, index: number, close: () => void) => {
-    const { name, price, image } = item;
+    //const price = item.total_amount_float ?? 0;
+    let price = getPrice(prices!, item.name!, item.sku?.description ?? "", item.sku_code ?? "", tokenPrice);
+    const { name, image_url } = item;
     return (
       <div key={index} className="flex py-5 last:pb-0">
-        <div className="relative h-24 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100">
+        <div className="relative h-24 w-20 flex-shrink-0 overflow-hidden rounded-xl">
           <Image
             fill
-            src={image?.url || ""}
-            alt={name}
+            src={image_url || ""}
+            alt={name || ""}
             className="h-full w-full object-contain object-center"
           />
           <Link
@@ -55,7 +74,7 @@ export default function CartDropdown() {
                   </Link>
                 </h3>
               </div>
-              <Prices price={price.raw} className="mt-0.5" />
+              <Prices price={price} className="mt-0.5" />
             </div>
           </div>
           <div className="flex flex-1 items-end justify-between text-sm">
@@ -85,7 +104,7 @@ export default function CartDropdown() {
                  group w-10 h-10 sm:w-12 sm:h-12 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full inline-flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 relative`}
           >
             <div className="w-3.5 h-3.5 flex items-center justify-center bg-primary-500 absolute top-1.5 right-1.5 rounded-full text-[10px] leading-none text-white font-medium">
-              <span className="mt-[1px]">3</span>
+              <span className="mt-[1px]">{cart?.skus_count}</span>
             </div>
             <svg
               className="w-6 h-6"
@@ -143,7 +162,7 @@ export default function CartDropdown() {
                   <div className="max-h-[60vh] p-5 overflow-y-auto hiddenScrollbar">
                     <h3 className="text-xl font-semibold">Shopping cart</h3>
                     <div className="divide-y divide-slate-100 dark:divide-slate-700">
-                      {cart?.line_items.map(
+                      {cart?.line_items?.filter(item => item.item_type === "skus").map(
                         (item, index) => renderProduct(item, index, close)
                       )}
                     </div>
@@ -152,11 +171,11 @@ export default function CartDropdown() {
                     <p className="flex justify-between font-semibold text-slate-900 dark:text-slate-100">
                       <span>
                         <span>Subtotal</span>
-                        <span className="block text-sm text-slate-500 dark:text-slate-400 font-normal">
+                        {/* <span className="block text-sm text-slate-500 dark:text-slate-400 font-normal">
                           Shipping and taxes calculated at checkout.
-                        </span>
+                        </span> */}
                       </span>
-                      <span className="">{cart?.subtotal.formatted_with_symbol}</span>
+                      <span className="">{subtotal.toLocaleString()} ELMT</span>
                     </p>
                     <div className="flex space-x-2 mt-5">
                       <ButtonSecondary
