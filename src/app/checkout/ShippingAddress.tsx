@@ -74,7 +74,7 @@ const ShippingAddress: FC<Props> = ({
         { name: "China", code: "CN" },
         { name: "India", code: "IN" },
       ]
-      setAvailableCountries(data.map((country: any) => ({ name: country.name.common, code: country.cca2 })));
+      setAvailableCountries(data);
     };
     fetchCountries();
   }, []);
