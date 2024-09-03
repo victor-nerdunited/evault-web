@@ -7,9 +7,7 @@ import { Product, PRODUCTS } from "@/data/data";
 import ButtonPrimary from "@/shared/Button/ButtonPrimary";
 import Image from "next/image";
 import Link from "next/link";
-import { commerce, useCommerce, } from "@/utils/commercejs";
-//import { LineItem } from "@chec/commerce.js/types/line-item";
-//import { Cart } from "@chec/commerce.js/types/cart";
+import { useCommerce, } from "@/utils/commercejs";
 import { useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
 import { LineItem, LineItemUpdate, Order } from "@commercelayer/sdk";
 import { getPrice } from "@/utils/priceUtil";
@@ -146,27 +144,6 @@ const CartPage = () => {
       </div>
     );
   };
-
-  // const removeItem = async (id: string) => {
-  //   // const response = await commerce.cart.remove(id);
-  //   // // setCart(response as unknown as Cart);
-  //   // cartDispatch(response as unknown as Cart);
-  //   await commerceLayer.line_items.delete(id);
-  //   const order = await commerceLayer.orders.retrieve(cart!.id, {include: ["line_items"]});
-  //   dispatchCart(order);
-  // };
-
-  // const updateQuantity = async (id: string, quantity: number) => {
-  //   // const response = await commerce.cart.update(id, { quantity });
-  //   // cartDispatch(response as unknown as Cart);
-  //   const lineItemUpdate: LineItemUpdate = {
-  //     id: id,
-  //     quantity: quantity,
-  //   };
-  //   await commerceLayer.line_items.update(lineItemUpdate);
-  //   const order = await commerceLayer.orders.retrieve(cart!.id, {include: ["line_items"]});
-  //   dispatchCart(order);
-  // };
 
   return (
     <div className="nc-CartPage">

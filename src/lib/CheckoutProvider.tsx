@@ -1,7 +1,5 @@
 "use client";
 
-// import { commerce } from '@/utils/commercejs';
-// import { Cart } from '@chec/commerce.js/types/cart';
 import { createContext, Dispatch, useContext, useEffect, useReducer, useState } from 'react';
 
 import { useCommerce } from '@/utils/commercejs';
@@ -96,8 +94,6 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (!orderId)  return;
 
     const fetchCart = async () => {
-      //const cart = await commerce.cart.retrieve();
-      //setCheckoutSession({ cart });
       const cart = await commerceLayer.orders.retrieve(orderId, {include: ["line_items"]});
       dispatchCart(cart);
     }

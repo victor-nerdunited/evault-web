@@ -17,10 +17,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import NcImage from "@/shared/NcImage/NcImage";
-import { Product } from "@chec/commerce.js/types/product";
-//import { commerce } from "@/utils/commercejs";
 import { useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
-//import { Cart } from "@chec/commerce.js/types/cart";
 import { LineItem, LineItemCreate, LineItemUpdate, Order, OrderCreate, Sku } from "@commercelayer/sdk";
 import { useCommerce } from "@/utils/commercejs";
 import { getPrice, getPrices } from "@/utils/priceUtil";
@@ -94,9 +91,6 @@ const ProductCard: FC<ProductCardProps> = ({
     });
     console.log("[ProductCard] order", order);
     dispatchCart(order as unknown as Order);
-
-    //const response = await commerce.cart.add(id, 1);
-    //dispatchCart(response as unknown as Cart);
     
     toast.custom(
       (t) => (

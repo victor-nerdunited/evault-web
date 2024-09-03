@@ -9,7 +9,6 @@ import Radio from "@/shared/Radio/Radio";
 import Select from "@/shared/Select/Select";
 import { IContactFormInputs } from "./ContactInfo";
 import { Controller, SubmitErrorHandler, SubmitHandler, useForm } from "react-hook-form";
-import { commerce } from "@/utils/commercejs";
 import { AddressType, IShippingAddress, useCheckoutDispatch } from "@/lib/CheckoutProvider";
 
 interface Props {
@@ -61,17 +60,6 @@ const ShippingAddress: FC<Props> = ({
     && watch("state") 
     && watch("postalCode") 
     && watch("addressType");
-
-  // useEffect(() => {
-  //   const fetchAvailableCountries = async () => {
-  //     if (checkoutId) {
-  //       const countries = await commerce.services.localeListShippingCountries(checkoutId);
-  //       setAvailableCountries(Object.keys(countries.countries).map((code) => ({ name: countries.countries[code], code })));
-  //     }
-  //   };
-
-  //   fetchAvailableCountries();
-  // }, [checkoutId]);
 
   const onSubmit: SubmitHandler<IShippingAddress> = (data) => {
     dispatchShippingAddress(data);

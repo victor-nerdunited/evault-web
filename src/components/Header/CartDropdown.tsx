@@ -16,8 +16,6 @@ import ButtonSecondary from "@/shared/Button/ButtonSecondary";
 import { getPrice, getPrices, MineralPrices } from "@/utils/priceUtil";
 import { getTokenPrice } from "@/utils/tokenPrice";
 import { LineItem } from "@commercelayer/sdk";
-//import { Cart } from "@chec/commerce.js/types/cart";
-//import { LineItem } from "@chec/commerce.js/types/line-item";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
