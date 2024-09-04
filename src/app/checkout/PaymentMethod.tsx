@@ -11,6 +11,7 @@ import { useAccount, useAccountEffect, useBalance, useClient, useConfig, useDisc
 import { getBalance } from "@wagmi/core";
 import { getPrices } from "@/utils/priceUtil";
 import { ELMT_TOKEN_ADDRESS } from "@/lib/web3/constants";
+import { useElmtBalance } from "@/hooks/useElmtBalance";
 
 interface Props {
   isActive: boolean;
@@ -26,8 +27,9 @@ const PaymentMethod: FC<Props> = ({
   const [mothodActive, setMethodActive] = useState<
     "Credit-Card" | "Internet-banking" | "Wallet"
   >("Credit-Card");
-  const [elmtBalance, setElmtBalance] = useState(0);
-  const config = useConfig();
+  // const [elmtBalance, setElmtBalance] = useState(0);
+  // const config = useConfig();
+  const elmtBalance = useElmtBalance();
 
   useEffect(() => {
     const fetchPrices = async () => {
@@ -37,21 +39,21 @@ const PaymentMethod: FC<Props> = ({
     fetchPrices();
   }, []);
 
-  useAccountEffect({
-    onConnect: async (data) => {
-      console.log("Connected to Ethereum network", data);
-      const balance = await getBalance(config,{
-        address: data.address,
-        token: ELMT_TOKEN_ADDRESS
-      });
-      console.log("balance", balance);
-      setElmtBalance(Number(balance.value) / (10 ** Number(balance.decimals)));
-    },
-    onDisconnect: () => {
-      console.log("Disconnected from Ethereum network");
-      setElmtBalance(0);
-    },
-  });
+  // useAccountEffect({
+  //   onConnect: async (data) => {
+  //     console.log("Connected to Ethereum network", data);
+  //     const balance = await getBalance(config,{
+  //       address: data.address,
+  //       token: ELMT_TOKEN_ADDRESS
+  //     });
+  //     console.log("balance", balance);
+  //     setElmtBalance(Number(balance.value) / (10 ** Number(balance.decimals)));
+  //   },
+  //   onDisconnect: () => {
+  //     console.log("Disconnected from Ethereum network");
+  //     setElmtBalance(0);
+  //   },
+  // });
 
   const onConnectWallet = async () => {
     // const connected = await web3?.connect();

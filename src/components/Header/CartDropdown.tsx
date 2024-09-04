@@ -29,7 +29,7 @@ export default function CartDropdown() {
   //   };
   //   fetchCart();
   // }, []);
-  const { cart } = useCheckout();
+  const { cart, removeItem } = useCheckout();
   const { tokenPrice } = useTokenPrice();
   const { prices } = usePrices();
 
@@ -80,6 +80,9 @@ export default function CartDropdown() {
 
             <div className="flex">
               <button
+                onClick={() => {
+                  removeItem(item.id);
+                }}
                 type="button"
                 className="font-medium text-primary-6000 dark:text-primary-500 "
               >

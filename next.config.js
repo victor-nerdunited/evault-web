@@ -27,6 +27,12 @@ const nextConfig = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "prod-element-products.s3.us-west-2.amazonaws.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
   webpack: config => {

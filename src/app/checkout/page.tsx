@@ -26,6 +26,7 @@ import { getTokenPrice } from "@/utils/tokenPrice";
 import NcModal from "@/shared/NcModal/NcModal";
 import PricesChangedModal from "./PricesChangedMoal";
 import { useRouter } from "next/navigation";
+import { useElmtBalance } from "@/hooks/useElmtBalance";
 
 const CheckoutPage = () => {
   const [tabActive, setTabActive] = useState<
@@ -58,7 +59,13 @@ const CheckoutPage = () => {
   const [subtotal, setSubtotal] = useState(0);
   const [pricesChanged, setPricesChanged] = useState(false);
   const router = useRouter();
+  const elmtBalance = useElmtBalance();
 
+  const fromToken = '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'; // USDC
+  const toToken = ELMT_TOKEN_ADDRESS;
+  const swapUrl = `https://portfolio.metamask.io/swap?fromAddress=${fromToken}&toAddress=${toToken}`;
+
+  
   useEffect(() => {
     if (!cart) return;
 
@@ -84,8 +91,8 @@ const CheckoutPage = () => {
   });
 
   const readyToOrder = useMemo(() => {
-    return account?.address && contactInfo && shippingAddress;
-  }, [account?.address, contactInfo, shippingAddress]);
+    return account?.address && contactInfo && shippingAddress && elmtBalance >= subtotal;
+  }, [account?.address, contactInfo, shippingAddress, subtotal, elmtBalance]);
 
   // #region old code
   // const sendToken = async (to: string, nativeAmount: bigint) => {
@@ -664,9 +671,9 @@ const CheckoutPage = () => {
                 ? submittingTransaction ? "Submitting transaction, see your wallet" : "Placing order..." 
                 : "Place order"}
             </ButtonPrimary>
-            {/* <div className="mt-5 text-sm text-slate-500 dark:text-slate-400 flex items-center justify-center">
+            <div hidden={elmtBalance >= subtotal} className="mt-5 text-sm text-slate-500 dark:text-slate-400 flex items-center justify-center">
               <p className="block relative pl-5">
-                <svg
+                {/* <svg
                   className="w-4 h-4 absolute -left-1 top-0.5"
                   viewBox="0 0 24 24"
                   fill="none"
@@ -713,9 +720,15 @@ const CheckoutPage = () => {
                 >
                   Shipping
                 </a>
-                {` `} infomation
+                {` `} infomation */}
+                You don't have enough ELMT to place this order.
+                <div>
+                  To obtain more ELMT, please swap some tokens 
+                  using <Link style={{ textDecoration: "underline" }} href={swapUrl} target="_blank" rel="noopener noreferrer">Metamask</Link>&nbsp;
+                  or your favorite exchange.
+                </div>
               </p>
-            </div> */}
+            </div>
           </div>
         </div>
       </main>
