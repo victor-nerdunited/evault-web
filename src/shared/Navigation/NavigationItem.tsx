@@ -15,7 +15,7 @@ import Link from "next/link";
 export interface NavItemType {
   id: string;
   name: string;
-  href: Route;
+  href: Route | string;
   targetBlank?: boolean;
   children?: NavItemType[];
   type?: "dropdown" | "megaMenu" | "none";

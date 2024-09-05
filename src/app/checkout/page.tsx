@@ -28,6 +28,8 @@ import PricesChangedModal from "./PricesChangedMoal";
 import { useRouter } from "next/navigation";
 import { useElmtBalance } from "@/hooks/useElmtBalance";
 
+const RECIPIENT_ADDRESS = "0xfA38BB29B98d2E867c24c7F68DF4940bd731343F";
+
 const CheckoutPage = () => {
   const [tabActive, setTabActive] = useState<
     "ContactInfo" | "ShippingAddress" | "PaymentMethod"
@@ -42,7 +44,7 @@ const CheckoutPage = () => {
   //const [checkoutTokenId, setCheckoutTokenId] = useState<string | null>(null);
   const account = useAccount();
   const { sendTransactionAsync } = useSendTransaction();
-  const { 
+  let { 
     data: transactionHash, 
     error: transactionError, 
     isPending: transactionPending, 
@@ -61,11 +63,13 @@ const CheckoutPage = () => {
   const router = useRouter();
   const elmtBalance = useElmtBalance();
 
-  const fromToken = '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'; // USDC
+  //const fromToken = '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'; // USDC
+  const fromToken = 'eth'; // ETH
   const toToken = ELMT_TOKEN_ADDRESS;
-  const swapUrl = `https://portfolio.metamask.io/swap?fromAddress=${fromToken}&toAddress=${toToken}`;
+  //const swapUrl = `https://portfolio.metamask.io/swap?fromAddress=${fromToken}&toAddress=${toToken}`;
+  const swapUrl = `https://app.uniswap.org/#/swap?inputCurrency=${fromToken}&outputCurrency=${toToken}&exactAmount=${subtotal}&exactField=output`;
+  const isDebug = new URLSearchParams(window.location.search).get("debug") !== null;
 
-  
   useEffect(() => {
     if (!cart) return;
 
@@ -91,159 +95,8 @@ const CheckoutPage = () => {
   });
 
   const readyToOrder = useMemo(() => {
-    return account?.address && contactInfo && shippingAddress && elmtBalance >= subtotal;
-  }, [account?.address, contactInfo, shippingAddress, subtotal, elmtBalance]);
-
-  // #region old code
-  // const sendToken = async (to: string, nativeAmount: bigint) => {
-  //   if (!token.data) throw new Error("Token data not found");
-
-  //   const transactionHash = await writeContractAsync({ 
-  //       abi: ELMT_TOKEN_ABI,
-  //       address: ELMT_TOKEN_ADDRESS,
-  //       functionName: 'transfer',
-  //       args: [
-  //         to,
-  //         nativeAmount,
-  //       ],
-  //       account: account.address,
-  //   });
-  //   return transactionHash;
-  // }
-
-  // const handleConfirmOrder= async (): Promise<void> => {
-  //   if (!cart) return;
-  //   if (!shippingAddress) return;
-  //   if (!contactInfo) return;
-  //   if (!token.data) return;
-  //   if (!account.address) return;
-
-  //   // const transactionHash = await sendTransactionAsync({
-  //   //   to: "0x54b41be33df43aB526733eeC707FB9aED92F6d68",
-  //   //   value: BigInt(subtotal * 10 ** token.data.decimals),
-  //   // });
-  //   let transactionHash: `0x${string}` | null = null;
-  //   try {
-  //     setPlacingOrder(true);
-  //     setSubmittingTransaction(true);
-  //     transactionHash = await sendToken(
-  //       "0x54b41be33df43aB526733eeC707FB9aED92F6d68", 
-  //       BigInt(subtotal * 10 ** token.data.decimals)
-  //       //BigInt(10 * 10 ** token.data.decimals)
-  //     );
-
-  //     if (!transactionHash) {
-  //       throw new Error("Transaction failed");
-  //     }
-  //     console.log("[checkout] transactionHash", transactionHash);
-  //     const txreceipt = await getTransactionReceipt(config, {
-  //       hash: transactionHash!,
-  //     });
-  //     console.log("[checkout] txreceipt", txreceipt);
-  //     const receipt = await waitForTransactionReceipt(config, {
-  //       hash: transactionHash!,
-  //     });
-  //     console.log("[checkout] receipt", receipt);
-  //   } catch (error: unknown) {
-  //     if (error instanceof ContractFunctionExecutionError 
-  //       && /user rejected/i.test(error.shortMessage)) {
-  //       return;
-  //     }
-  //     console.error("Error sending token", error);
-  //     throw error;
-  //   } finally {
-  //     setPlacingOrder(false);
-  //     setSubmittingTransaction(false);
-  //   }
-    
-  //   try {
-  //     //throw new Error("Circuit breaker");
-
-  //     setPlacingOrder(true);
-  //     const addressCreate: AddressCreate = {
-  //       first_name: shippingAddress.firstName,
-  //       last_name: shippingAddress.lastName,
-  //       line_1: shippingAddress.address1,
-  //       city: shippingAddress.city,
-  //       state_code: shippingAddress.state,
-  //       zip_code: shippingAddress.postalCode,
-  //       country_code: shippingAddress.country,
-  //       phone: contactInfo.phone
-  //     }
-  //     const address = await commerceLayer?.addresses.create(addressCreate);
-  //     cart.billing_address = address;
-
-  //     let orderUpdate: OrderUpdate = {
-  //       id: cart.id,
-  //       billing_address: address,
-  //       customer_email: contactInfo.email,
-  //       shipping_address: address,
-  //       metadata: {
-  //         wallet_address: account.address,
-  //         transaction_hash: transactionHash,
-  //         token_price: tokenPrice,
-  //         amount: subtotal,
-  //       }
-  //     };
-  //     let order = await commerceLayer?.orders.update(orderUpdate);
-  //     console.log("[checkout] order", order);
-
-  //     const paymentMethods = await commerceLayer.orders.available_payment_methods(cart.id);
-  //     console.log("[checkout] paymentMethods", paymentMethods);
-
-  //     const orderShipments = await commerceLayer.orders.shipments(cart.id, {
-  //       include: ["available_shipping_methods"]
-  //     });
-  //     console.log("[checkout] orderWithShippingMethods", orderShipments);
-  //     const orderShipment = orderShipments.first();
-  //     const shippingMethod = orderShipment!.available_shipping_methods![0];
-
-  //     const shipmentUpdate: ShipmentUpdate = {
-  //       id: orderShipment!.id,
-  //       shipping_method: shippingMethod
-  //     }
-  //     const shipment = await commerceLayer.shipments.update(shipmentUpdate)
-  //     console.log("[checkout] shipment", shipment);
-
-  //     // const customerQueryParams: QueryParamsList<Customer> = {
-  //     //   filters: {
-  //     //     "email": contactInfo.email
-  //     //   }
-  //     // };
-  //     // const customerList = await commerceLayer?.customers.list(customerQueryParams);
-  //     // let customer = customerList?.first();
-  //     // if (!customer) {
-  //     //   customer = await commerceLayer?.customers.create(customerCreate);
-  //     // }
-  //     ensureCustomerExists(contactInfo, shippingAddress);
-
-  //     const wireTransferCreate: WireTransferCreate = {
-  //       order: cart
-  //     }
-  //     const wireTransfer = await commerceLayer.wire_transfers.create(wireTransferCreate);
-  //     console.log("[checkout] wireTransfer", wireTransfer);
-
-  //     orderUpdate = {
-  //       id: cart.id,
-  //       payment_source: wireTransfer,
-  //     };
-  //     order = await commerceLayer?.orders.update(orderUpdate);
-  //     console.log("[checkout] order", order);
-
-  //     orderUpdate = {
-  //       id: order!.id,
-  //       _place: true,
-  //     };
-  //     order = await commerceLayer?.orders.update(orderUpdate);
-  //     console.log("[checkout] order", order);
-  //     dispatchCart(order!);
-  //   } catch (error) {
-  //     console.error("Error placing order", error);
-  //   } finally {
-  //     setPlacingOrder(false);
-  //   }
-  // }
-  // #endregion
+    return account?.address && contactInfo && shippingAddress && (elmtBalance >= subtotal || isDebug);
+  }, [account?.address, contactInfo, shippingAddress, subtotal, elmtBalance, isDebug]);
 
   const sendToken = (to: string, nativeAmount: bigint) => {
     if (!token.data) throw new Error("Token data not found");
@@ -303,18 +156,20 @@ const CheckoutPage = () => {
     if (!token.data) return;
     if (!account.address) return;
 
-    // const transactionHash = await sendTransactionAsync({
-    //   to: "0x54b41be33df43aB526733eeC707FB9aED92F6d68",
-    //   value: BigInt(subtotal * 10 ** token.data.decimals),
-    // });
+    if (isDebug) {
+      console.log("[handlePlaceOrder] Debug mode enabled, not actually sending token");
+      router.push(`/order-confirmation?orderid=${cart?.id}&total=${subtotal}&hash=faketxhash${Date.now()}`);
+      return;
+    }
 
     await ensurePrices();
 
     try {
       setPlacingOrder(true);
       setSubmittingTransaction(true);
+
       await sendToken(
-        "0x54b41be33df43aB526733eeC707FB9aED92F6d68", 
+        RECIPIENT_ADDRESS, 
         BigInt(subtotal * 10 ** token.data.decimals)
         //BigInt(10 * 10 ** token.data.decimals)
       );
@@ -340,71 +195,7 @@ const CheckoutPage = () => {
     if (!transactionHash) return;
 
     try {
-      //throw new Error("Circuit breaker");
-
       setPlacingOrder(true);
-
-      const addOrderAddresses = async () => {
-        const addressCreate: AddressCreate = {
-          first_name: shippingAddress.firstName,
-          last_name: shippingAddress.lastName,
-          line_1: shippingAddress.address1,
-          city: shippingAddress.city,
-          state_code: shippingAddress.state,
-          zip_code: shippingAddress.postalCode,
-          country_code: shippingAddress.country,
-          phone: contactInfo.phone
-        }
-        const address = await commerceLayer?.addresses.create(addressCreate);
-        //cart.billing_address = address;
-
-        const orderUpdate: OrderUpdate = {
-          id: cart.id,
-          billing_address: address,
-          customer_email: contactInfo.email,
-          shipping_address: address,
-          metadata: {
-            wallet_address: account.address,
-            transaction_hash: transactionHash,
-            token_price: tokenPrice,
-            gold_price: prices?.goldPrice,
-            silver_price: prices?.silverPrice,
-            amount: subtotal,
-          }
-        };
-        let order = await commerceLayer?.orders.update(orderUpdate);
-        console.log("[checkout] added billing/shipping address to order", order);
-      }
-      await addOrderAddresses();
-
-      const addShippingMethod = async () => {
-        const orderShipments = await commerceLayer.orders.shipments(cart.id, {
-          include: ["available_shipping_methods"]
-        });
-        console.log("[checkout] orderWithShippingMethods", orderShipments);
-        const orderShipment = orderShipments.first();
-        const shippingMethod = orderShipment!.available_shipping_methods![0];
-
-        const shipmentUpdate: ShipmentUpdate = {
-          id: orderShipment!.id,
-          shipping_method: shippingMethod
-        }
-        const shipment = await commerceLayer.shipments.update(shipmentUpdate)
-        console.log("[checkout] shipment", shipment);
-      }
-      await addShippingMethod();
-
-      // const customerQueryParams: QueryParamsList<Customer> = {
-      //   filters: {
-      //     "email": contactInfo.email
-      //   }
-      // };
-      // const customerList = await commerceLayer?.customers.list(customerQueryParams);
-      // let customer = customerList?.first();
-      // if (!customer) {
-      //   customer = await commerceLayer?.customers.create(customerCreate);
-      // }
-      ensureCustomerExists(contactInfo, shippingAddress);
 
       const addPaymentInfo = async () => {
         const wireTransferCreate: WireTransferCreate = {
@@ -420,19 +211,27 @@ const CheckoutPage = () => {
           id: cart.id,
           payment_source: wireTransfer,
           payment_method: paymentMethods.first(),
+          metadata: {
+            wallet_address: account.address,
+            transaction_hash: transactionHash,
+            token_price: tokenPrice,
+            gold_price: prices?.goldPrice,
+            silver_price: prices?.silverPrice,
+            amount: subtotal,
+          }
         };
         const order = await commerceLayer?.orders.update(orderUpdate);
         console.log("[checkout] order", order);
       }
       await addPaymentInfo();
-      
+        
       const orderUpdate = {
         id: cart!.id,
         _place: true,
       };
       const order = await commerceLayer?.orders.update(orderUpdate);
       console.log("[checkout] order", order);
-      router.push(`/order-confirmation?orderId=${order?.id}`);
+      router.push(`/order-confirmation?orderid=${order?.id}&total=${subtotal}&hash=${transactionHash}`);
     } catch (error) {
       console.error("Error placing order", error);
 
@@ -448,24 +247,6 @@ const CheckoutPage = () => {
 
     submitOrder();
   }, [transactionHash, transactionStatus, transactionPending, transactionError]);
-
-  const ensureCustomerExists = async (contactInfo: IContactFormInputs, shippingAddress: IShippingAddress) => {
-    try {
-      const customerCreate: CustomerCreate = {
-        email: contactInfo.email,
-        metadata: {
-          wallet_address: account.address,
-          first_name: contactInfo.name.split(' ')[0] ?? shippingAddress.firstName,
-          last_name: contactInfo.name.split(' ')[1] ?? shippingAddress.lastName,
-          phone: contactInfo.phone
-        }
-      }
-
-      await commerceLayer?.customers.create(customerCreate);
-    } catch (error) {
-      console.error("Error creating customer", error);
-    }
-  }
 
   const handleScrollToEl = (id: string) => {
     const element = document.getElementById(id);
@@ -624,7 +405,7 @@ const CheckoutPage = () => {
           <div className="w-full lg:w-[36%] ">
             <h3 className="text-lg font-semibold">Order summary</h3>
             <div className="mt-8 divide-y divide-slate-200/70 dark:divide-slate-700 ">
-              {cart?.line_items?.map(renderProduct)}
+              {cart?.line_items?.filter(item => item.item_type === "skus").map(renderProduct)}
             </div>
 
             <div className="mt-10 pt-6 text-sm text-slate-500 dark:text-slate-400 border-t border-slate-200/70 dark:border-slate-700 ">
@@ -671,7 +452,10 @@ const CheckoutPage = () => {
                 ? submittingTransaction ? "Submitting transaction, see your wallet" : "Placing order..." 
                 : "Place order"}
             </ButtonPrimary>
-            <div hidden={elmtBalance >= subtotal} className="mt-5 text-sm text-slate-500 dark:text-slate-400 flex items-center justify-center">
+            {/* {account.address}<br />
+            {elmtBalance}<br />
+            {subtotal}<br /> */}
+            <div style={{ display: (account.address && elmtBalance < subtotal) ? "block" : "none" }} className="mt-5 text-sm text-slate-500 dark:text-slate-400 flex items-center justify-center">
               <p className="block relative pl-5">
                 {/* <svg
                   className="w-4 h-4 absolute -left-1 top-0.5"
@@ -724,7 +508,7 @@ const CheckoutPage = () => {
                 You don't have enough ELMT to place this order.
                 <div>
                   To obtain more ELMT, please swap some tokens 
-                  using <Link style={{ textDecoration: "underline" }} href={swapUrl} target="_blank" rel="noopener noreferrer">Metamask</Link>&nbsp;
+                  using <Link style={{ textDecoration: "underline" }} href={new URL(swapUrl)} target="_blank" rel="noopener noreferrer">Uniswap</Link>&nbsp;
                   or your favorite exchange.
                 </div>
               </p>

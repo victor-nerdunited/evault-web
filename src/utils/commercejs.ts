@@ -27,9 +27,25 @@ export function useCommerce() {
       setCommerceLayer(CommerceLayer({
         organization: 'element-united',
         accessToken: authJson.access_token
-
+      }));
+      localStorage.setItem('token_expires', JSON.stringify({
+        expires: new Date(Date.now() + authJson.expires_in * 1000).toISOString(),
+        token: authJson.access_token
       }));
     }
+
+    const token_expires = localStorage.getItem('token_expires');
+    if (token_expires) {
+      const { expires, token } = JSON.parse(token_expires);
+      if (expires && new Date(expires) > new Date()) {
+        setCommerceLayer(CommerceLayer({
+          organization: 'element-united',
+          accessToken: token
+        }));
+        return;
+      }
+    }
+
     fetchAccessToken();
   }, []);
   

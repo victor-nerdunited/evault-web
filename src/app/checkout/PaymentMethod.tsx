@@ -34,36 +34,9 @@ const PaymentMethod: FC<Props> = ({
   useEffect(() => {
     const fetchPrices = async () => {
       const prices = await getPrices();
-      console.log("price", prices);
     }
     fetchPrices();
   }, []);
-
-  // useAccountEffect({
-  //   onConnect: async (data) => {
-  //     console.log("Connected to Ethereum network", data);
-  //     const balance = await getBalance(config,{
-  //       address: data.address,
-  //       token: ELMT_TOKEN_ADDRESS
-  //     });
-  //     console.log("balance", balance);
-  //     setElmtBalance(Number(balance.value) / (10 ** Number(balance.decimals)));
-  //   },
-  //   onDisconnect: () => {
-  //     console.log("Disconnected from Ethereum network");
-  //     setElmtBalance(0);
-  //   },
-  // });
-
-  const onConnectWallet = async () => {
-    // const connected = await web3?.connect();
-    // if (connected) {
-    //   console.log("Connected to Ethereum network");
-    // } else {
-    //   console.log("Failed to connect to Ethereum network");
-    // }
-    console.log("connect wallet");
-  };
 
   const renderDebitCredit = () => {
     const active = mothodActive === "Credit-Card";
@@ -384,25 +357,17 @@ const PaymentMethod: FC<Props> = ({
     )
   }
 
-  const renderCrypto = () => {
+  const renderCrypto = (elmtBalance: number) => {
     return (
       <div className="flex items-start space-x-4 sm:space-x-6">
         <div className="flex pt-6">
-          {/* <ButtonSecondary className="ml-3" onClick={onConnectWallet}>
-            Connect Wallet
-          </ButtonSecondary> */}
-          {/* <ConnectKitButton.Custom>
-            {({ isConnected, isConnecting, show, hide, address, ensName, chain }) => {
-              return <RenderAccount />
-            }}
-          </ConnectKitButton.Custom> */}
           <ConnectKitButton />
         </div>
         {elmtBalance ?
           <div className="flex pt-8">
             Your balance: {elmtBalance} ELMT
           </div>
-          : null
+          : <div></div>
         }
       </div>
     );
@@ -480,7 +445,7 @@ const PaymentMethod: FC<Props> = ({
           {/* <div>{renderDebitCredit()}</div>
           <div>{renderInterNetBanking()}</div>
           <div>{renderWallet()}</div> */}
-          <div>{renderCrypto()}</div>
+          <div>{renderCrypto(elmtBalance)}</div>
 
           {/* <div className="flex pt-6">
             <ButtonPrimary

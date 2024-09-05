@@ -6,6 +6,8 @@ import Checkbox from "@/shared/Checkbox/Checkbox";
 import Input from "@/shared/Input/Input";
 import { useForm, Controller, SubmitHandler } from "react-hook-form"
 import { useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
+import { Customer, CustomerCreate, CustomerUpdate } from "@commercelayer/sdk";
+import { useCommerce } from "@/utils/commercejs";
 
 interface Props {
   isActive: boolean;
@@ -22,6 +24,7 @@ export interface IContactFormInputs {
 const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
   const { contactInfo } = useCheckout();
   const { dispatchContactInfo } = useCheckoutDispatch();
+  const commerceLayer = useCommerce();
 
   const { handleSubmit, control, watch } = useForm<IContactFormInputs>({
     defaultValues: contactInfo ?? {
@@ -36,10 +39,30 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
 
   const isCompleted = watch("name") && watch("phone") && watch("email");
 
-  const onSubmit: SubmitHandler<IContactFormInputs> = (data) => {
+  const onSubmit: SubmitHandler<IContactFormInputs> = async (data) => {
+    await addOrUpdateCustomer(data);
     dispatchContactInfo(data);
     onCloseActive(data);
   };
+
+  const addOrUpdateCustomer = async (contactInfo: IContactFormInputs) => {
+    try {
+      const customerCreate: CustomerCreate = {
+        email: contactInfo.email,
+        metadata: {
+          //wallet_address: account.address,
+          full_name: contactInfo.name,
+          first_name: contactInfo.name.split(' ')[0],
+          last_name: contactInfo.name.split(' ')[1],
+          phone: contactInfo.phone
+        }
+      }
+      
+      await commerceLayer!.customers.create(customerCreate);
+    } catch (error) {
+      console.error("Error creating customer", error);
+    }
+  }
 
   const renderAccount = () => {
     return (

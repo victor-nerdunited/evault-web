@@ -9,7 +9,11 @@ function Navigation() {
     //     <NavigationItem key={item.id} menuItem={item} />
     //   ))}
     // </ul>
-    <div></div>
+    <ul className="nc-Navigation flex items-center">
+      {[{id: "1", name: 'Home', href: '/'}].map((item) => (
+        <NavigationItem key={item.id} menuItem={item} />
+      ))}
+    </ul>
   );
 }
 

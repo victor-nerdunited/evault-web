@@ -9,7 +9,11 @@ import Radio from "@/shared/Radio/Radio";
 import Select from "@/shared/Select/Select";
 import { IContactFormInputs } from "./ContactInfo";
 import { Controller, SubmitErrorHandler, SubmitHandler, useForm } from "react-hook-form";
-import { AddressType, IShippingAddress, useCheckoutDispatch } from "@/lib/CheckoutProvider";
+import { AddressType, IShippingAddress, useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
+import { AddressCreate, OrderUpdate, ShipmentUpdate } from "@commercelayer/sdk";
+import { useCommerce } from "@/utils/commercejs";
+import { useTokenPrice } from "@/hooks/useTokenprice";
+import { usePrices } from "@/hooks/usePrices";
 
 interface Props {
   //checkoutId: string | null;
@@ -26,7 +30,12 @@ const ShippingAddress: FC<Props> = ({
   onCloseActive,
   onOpenActive,
 }) => {
+  const { cart } = useCheckout();
   const { dispatchShippingAddress } = useCheckoutDispatch();
+  const commerceLayer = useCommerce();
+  const { tokenPrice } = useTokenPrice();
+  const { prices } = usePrices();
+
   const { handleSubmit, control, watch, setValue } = useForm<IShippingAddress>({
     defaultValues: {
       firstName: contactInfo?.name.split(" ")[0] ?? "",
@@ -65,24 +74,71 @@ const ShippingAddress: FC<Props> = ({
     const fetchCountries = async () => {
       const data = [
         { name: "United States", code: "US" },
-        { name: "Canada", code: "CA" },
-        { name: "United Kingdom", code: "GB" },
-        { name: "Australia", code: "AU" },
-        { name: "Germany", code: "DE" },
-        { name: "France", code: "FR" },
-        { name: "Japan", code: "JP" },
-        { name: "China", code: "CN" },
-        { name: "India", code: "IN" },
+        // { name: "Canada", code: "CA" },
+        // { name: "United Kingdom", code: "GB" },
+        // { name: "Australia", code: "AU" },
+        // { name: "Germany", code: "DE" },
+        // { name: "France", code: "FR" },
+        // { name: "Japan", code: "JP" },
+        // { name: "China", code: "CN" },
+        // { name: "India", code: "IN" },
       ]
       setAvailableCountries(data);
     };
     fetchCountries();
   }, []);
 
-  const onSubmit: SubmitHandler<IShippingAddress> = (data) => {
+  const onSubmit: SubmitHandler<IShippingAddress> = async (data) => {
+    await addOrderAddresses(data);
+    await addShippingMethod();
     dispatchShippingAddress(data);
     onCloseActive(data);
   };
+
+  const addOrderAddresses = async (shippingAddress: IShippingAddress) => {
+    const addressCreate: AddressCreate = {
+      first_name: shippingAddress.firstName,
+      last_name: shippingAddress.lastName,
+      line_1: shippingAddress.address1,
+      city: shippingAddress.city,
+      state_code: shippingAddress.state,
+      zip_code: shippingAddress.postalCode,
+      country_code: shippingAddress.country,
+      phone: contactInfo!.phone
+    }
+    const address = await commerceLayer?.addresses.create(addressCreate);
+    //cart.billing_address = address;
+
+    const orderUpdate: OrderUpdate = {
+      id: cart!.id,
+      billing_address: address,
+      customer_email: contactInfo!.email,
+      shipping_address: address,
+      metadata: {
+        token_price: tokenPrice,
+        gold_price: prices?.goldPrice,
+        silver_price: prices?.silverPrice,
+      }
+    };
+    let order = await commerceLayer?.orders.update(orderUpdate);
+    console.log("[addOrderAddresses] added billing/shipping address to order", order);
+  }
+
+  const addShippingMethod = async () => {
+    const orderShipments = await commerceLayer!.orders.shipments(cart!.id, {
+      include: ["available_shipping_methods"]
+    });
+    console.log("[checkout] orderWithShippingMethods", orderShipments);
+    const orderShipment = orderShipments.first();
+    const shippingMethod = orderShipment!.available_shipping_methods![0];
+
+    const shipmentUpdate: ShipmentUpdate = {
+      id: orderShipment!.id,
+      shipping_method: shippingMethod
+    }
+    const shipment = await commerceLayer!.shipments.update(shipmentUpdate)
+    console.log("[addShippingMethod] shipment", shipment);
+  }
 
   const onError: SubmitErrorHandler<IShippingAddress> = (errors) => {
     console.log(errors);

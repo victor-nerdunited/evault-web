@@ -159,7 +159,7 @@ const CartPage = () => {
         <div className="flex flex-col lg:flex-row">
           <div className="w-full lg:w-[60%] xl:w-[55%] divide-y divide-slate-200 dark:divide-slate-700 ">
             {cart && cart.line_items?.length
-              ? cart?.line_items?.map(renderProduct)
+              ? cart?.line_items?.filter(item => item.item_type === "skus").map(renderProduct)
               : <div>No items in cart</div>
             }
           </div>

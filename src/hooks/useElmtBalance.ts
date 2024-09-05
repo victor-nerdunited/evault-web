@@ -1,27 +1,15 @@
 import { ELMT_TOKEN_ADDRESS } from "@/lib/web3/constants";
-import { useState } from "react";
-import { useAccountEffect, useConfig } from "wagmi";
-import { getBalance } from "@wagmi/core";
+import { useEffect, useState } from "react";
+import { useAccount, useBalance } from "wagmi";
 
 export const useElmtBalance = () => {
-  const config = useConfig();
   const [elmtBalance, setElmtBalance] = useState(0);
-  
-  useAccountEffect({
-    onConnect: async (data) => {
-      console.log("Connected to Ethereum network", data);
-      const balance = await getBalance(config, {
-        address: data.address,
-        token: ELMT_TOKEN_ADDRESS
-      });
-      //console.log("balance", balance);
-      setElmtBalance(Number(balance.value) / (10 ** Number(balance.decimals)));
-    },
-    onDisconnect: () => {
-      //console.log("Disconnected from Ethereum network");
-      setElmtBalance(0);
-    },
-  });
+  const account = useAccount();
+  const tokenBalance = useBalance({ address: account?.address, token: ELMT_TOKEN_ADDRESS });
+
+  useEffect(() => {
+    setElmtBalance(Number(tokenBalance?.data?.value) / (10 ** Number(tokenBalance?.data?.decimals)));
+  }, [tokenBalance?.data?.value]);
 
   return elmtBalance;
 };

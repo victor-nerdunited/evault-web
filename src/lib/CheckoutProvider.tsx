@@ -190,7 +190,9 @@ export function useCheckoutDispatch() {
 
 function cartReducer(state: Order, newState: Order): Order {
   // localStorage.setItem('cart', JSON.stringify(newState));
-  setCookie('orderId', newState.id);
+  if (newState) {
+    setCookie('orderId', newState.id);
+  }
   return newState;
 }
 function contactInfoReducer(state: IContactInfo, newState: IContactInfo): IContactInfo {
