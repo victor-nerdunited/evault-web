@@ -62,13 +62,13 @@ const CheckoutPage = () => {
   const [pricesChanged, setPricesChanged] = useState(false);
   const router = useRouter();
   const elmtBalance = useElmtBalance();
+  const [isDebug, setIsDebug] = useState(false);
 
   //const fromToken = '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'; // USDC
   const fromToken = 'eth'; // ETH
   const toToken = ELMT_TOKEN_ADDRESS;
   //const swapUrl = `https://portfolio.metamask.io/swap?fromAddress=${fromToken}&toAddress=${toToken}`;
   const swapUrl = `https://app.uniswap.org/#/swap?inputCurrency=${fromToken}&outputCurrency=${toToken}&exactAmount=${subtotal}&exactField=output`;
-  const isDebug = new URLSearchParams(window.location.search).get("debug") !== null;
 
   useEffect(() => {
     if (!cart) return;
@@ -81,8 +81,9 @@ const CheckoutPage = () => {
   }, [cart, tokenPrice, prices]);
 
   useEffect(() => {
-    console.log("token", token);
-  }, [token]);
+    const isDebug = new URLSearchParams(window.location.search).get("debug") !== null;
+    setIsDebug(isDebug);
+  }, []);
 
   useAccountEffect({
     onConnect: async (data) => {
