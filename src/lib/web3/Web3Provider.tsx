@@ -25,8 +25,8 @@ const config = createConfig(
 
     // Optional App Info
     appDescription: "Gold, silver, minerals digital exchange",
-    appUrl: "https://evault.elementunited.com", // your app's url
-    appIcon: "https://evault.elementunited.com/logo.png", // your app's icon, no bigger than 1024x1024px (max. 1MB)
+    appUrl: "https://elmt.store", // your app's url
+    appIcon: "https://elmt.shop/store.png", // your app's icon, no bigger than 1024x1024px (max. 1MB)
   }),
 );
 
