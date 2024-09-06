@@ -117,6 +117,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const updateQuantity = async (itemId: string, quantity: number) => {
     if (!commerceLayer) return;
+    if (quantity > 3) return;
 
     const lineItemUpdate: LineItemUpdate = {
       id: itemId,

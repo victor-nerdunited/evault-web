@@ -72,7 +72,7 @@ const ProductCard: FC<ProductCardProps> = ({
       order = await commerceLayer.orders.create({ guest: true } as OrderCreate);
     }
     const lineItem = order.line_items?.find(li => li.sku_code === data.code);
-    if (lineItem) {
+    if (lineItem && lineItem.quantity < 3) {
       const lineItemUpdate: LineItemUpdate = {
         id: lineItem.id,
         quantity: lineItem.quantity + 1
@@ -225,7 +225,7 @@ const ProductCard: FC<ProductCardProps> = ({
       <div
         className={`nc-ProductCard relative flex flex-col bg-transparent ${className}`}
       >
-        <Link href={"/product-detail"} className="absolute inset-0"></Link>
+        {/* <Link href={"/product-detail"} className="absolute inset-0"></Link> */}
 
         <div className="relative flex-shrink-0 rounded-3xl overflow-hidden z-1 group">
           {/* <Link href={"/product-detail"} className="block"> */}

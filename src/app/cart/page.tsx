@@ -81,7 +81,7 @@ const CartPage = () => {
             sizes="300px"
             className="h-full w-full object-contain object-center"
           />
-          <Link href="/product-detail" className="absolute inset-0"></Link>
+          {/* <Link href="/product-detail" className="absolute inset-0"></Link> */}
         </div>
 
         <div className="ml-3 sm:ml-6 flex flex-1 flex-col">
@@ -89,7 +89,8 @@ const CartPage = () => {
             <div className="flex justify-between ">
               <div className="flex-[1.5] ">
                 <h3 className="text-base font-semibold">
-                  <Link href="/product-detail">{name}</Link>
+                  {/* <Link href="/product-detail">{name}</Link> */}
+                  {name}
                 </h3>
 
                 <div className="mt-3 flex justify-between w-full sm:hidden relative">
@@ -116,6 +117,7 @@ const CartPage = () => {
               <div className="hidden sm:block text-center relative">
                 <NcInputNumber
                   className="relative z-10"
+                  max={3}
                   defaultValue={quantity}
                   onChange={(value) => updateQuantity(item.id, value)}
                 />
