@@ -95,6 +95,8 @@ const CartPage = () => {
 
                 <div className="mt-3 flex justify-between w-full sm:hidden relative">
                   <select
+                    onChange={(e) => updateQuantity(item.id, parseInt(e.target.value))}
+                    value={quantity}
                     name="qty"
                     id="qty"
                     className="form-select text-sm rounded-md py-1 border-slate-200 dark:border-slate-700 relative z-10 dark:bg-slate-800 "
@@ -102,10 +104,6 @@ const CartPage = () => {
                     <option value="1">1</option>
                     <option value="2">2</option>
                     <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
                   </select>
                   <Prices
                     contentClass="py-1 px-2 md:py-1.5 md:px-2.5 text-sm font-medium h-full"
