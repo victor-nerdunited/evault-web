@@ -4,21 +4,19 @@ import ButtonPrimary from "@/shared/Button/ButtonPrimary";
 import ButtonSecondary from "@/shared/Button/ButtonSecondary";
 import Checkbox from "@/shared/Checkbox/Checkbox";
 import Input from "@/shared/Input/Input";
-import { useForm, Controller, SubmitHandler } from "react-hook-form"
-import { useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
+import { useForm, Controller, SubmitHandler } from "react-hook-form";
+import {
+  IContactInfo,
+  useCheckout,
+  useCheckoutDispatch,
+} from "@/lib/CheckoutProvider";
 import { Customer, CustomerCreate, CustomerUpdate } from "@commercelayer/sdk";
 import { useCommerce } from "@/utils/commercejs";
 
 interface Props {
   isActive: boolean;
   onOpenActive: () => void;
-  onCloseActive: (contactInfo: IContactFormInputs) => void;
-}
-
-export interface IContactFormInputs {
-  name: string;
-  phone: string;
-  email: string;
+  onCloseActive: (contactInfo: IContactInfo) => void;
 }
 
 const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
@@ -26,43 +24,44 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
   const { dispatchContactInfo } = useCheckoutDispatch();
   const commerceLayer = useCommerce();
 
-  const { handleSubmit, control, watch } = useForm<IContactFormInputs>({
+  const { handleSubmit, control, watch } = useForm<IContactInfo>({
     defaultValues: contactInfo ?? {
-      name: "",
+      firstName: "",
       phone: "",
       email: "",
       // name: "Chuck Norris",
       // phone: "15555555555",
       // email: "vponce@nerdunited.com",
     },
-  })
+  });
 
-  const isCompleted = watch("name") && watch("phone") && watch("email");
+  const isCompleted =
+    watch("firstName") && watch("lastName") && watch("phone") && watch("email");
 
-  const onSubmit: SubmitHandler<IContactFormInputs> = async (data) => {
+  const onSubmit: SubmitHandler<IContactInfo> = async (data) => {
     await addOrUpdateCustomer(data);
     dispatchContactInfo(data);
     onCloseActive(data);
   };
 
-  const addOrUpdateCustomer = async (contactInfo: IContactFormInputs) => {
+  const addOrUpdateCustomer = async (contactInfo: IContactInfo) => {
     try {
       const customerCreate: CustomerCreate = {
         email: contactInfo.email,
         metadata: {
           //wallet_address: account.address,
-          full_name: contactInfo.name,
-          first_name: contactInfo.name.split(' ')[0],
-          last_name: contactInfo.name.split(' ')[1],
-          phone: contactInfo.phone
-        }
-      }
-      
+          full_name: contactInfo.firstName,
+          first_name: contactInfo.firstName.split(" ")[0],
+          last_name: contactInfo.firstName.split(" ")[1],
+          phone: contactInfo.phone,
+        },
+      };
+
       await commerceLayer!.customers.create(customerCreate);
     } catch (error) {
       console.error("Error creating customer", error);
     }
-  }
+  };
 
   const renderAccount = () => {
     return (
@@ -101,7 +100,8 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
           <div className="sm:ml-8">
             <h3 className=" text-slate-700 dark:text-slate-300 flex ">
               <span className="uppercase tracking-tight">CONTACT INFO</span>
-              <svg style={{ display: isCompleted ? "" : "none" }}
+              <svg
+                style={{ display: isCompleted ? "" : "none" }}
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth="2.5"
@@ -116,7 +116,7 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
               </svg>
             </h3>
             <div className="mt-1 text-sm" hidden={isActive}>
-              <div className="mt-3">{watch("name")}</div>
+              <div className="mt-3">{watch("firstName")} {watch("lastName")}</div>
               <div className="tracking-tighter">{watch("phone")}</div>
               <div className="tracking-tighter">{watch("email")}</div>
             </div>
@@ -143,29 +143,53 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
             </span> */}
           </div>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="max-w-lg">
-              <Label className="text-sm">Your name</Label>
-              <Controller
-                name="name"
-                control={control}
-                rules={{ required: "Name is required" }}
-                render={({ field, fieldState }) =>
-                  <Input
-                    {...field}
-                    className="mt-1.5"
-                    aria-invalid={fieldState.error ? "true" : "false"}
-                    placeholder={fieldState.error?.message}
-                  />
-                }
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-3">
+              <div>
+                <Label className="text-sm">First name</Label>
+                <Controller
+                  name="firstName"
+                  control={control}
+                  rules={{ required: "First name is required" }}
+                  render={({ field, fieldState }) => (
+                    <Input
+                      {...field}
+                      className="mt-1.5"
+                      aria-invalid={fieldState.error ? "true" : "false"}
+                      placeholder={fieldState.error?.message}
+                    />
+                  )}
+                />
+              </div>
+              <div>
+                  <Label className="text-sm">Last name</Label>
+                <Controller
+                  name="lastName"
+                  control={control}
+                  rules={{ required: "Last name is required" }}
+                  render={({ field, fieldState }) => (
+                    <Input
+                      {...field}
+                      className="mt-1.5"
+                      aria-invalid={fieldState.error ? "true" : "false"}
+                      placeholder={fieldState.error?.message}
+                    />
+                  )}
+                />
+              </div>
             </div>
             <div className="max-w-lg">
               <Label className="text-sm">Your phone number</Label>
               <Controller
                 name="phone"
                 control={control}
-                rules={{ required: "Phone is required", pattern: { value: /^\+?[1-9][0-9]{7,14}$/, message: "Invalid phone number" } }}
-                render={({ field, fieldState }) =>
+                rules={{
+                  required: "Phone is required",
+                  pattern: {
+                    value: /^\+?[1-9][0-9]{7,14}$/,
+                    message: "Invalid phone number",
+                  },
+                }}
+                render={({ field, fieldState }) => (
                   <Input
                     {...field}
                     className="mt-1.5"
@@ -176,7 +200,7 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
                     aria-invalid={fieldState.error ? "true" : "false"}
                     placeholder={fieldState.error?.message ?? "15555555555"}
                   />
-                }
+                )}
               />
             </div>
             <div className="max-w-lg">
@@ -184,8 +208,14 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
               <Controller
                 name="email"
                 control={control}
-                rules={{ required: "Email is required", pattern: { value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, message: "Invalid email address" } }}
-                render={({ field, fieldState }) =>
+                rules={{
+                  required: "Email is required",
+                  pattern: {
+                    value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                    message: "Invalid email address",
+                  },
+                }}
+                render={({ field, fieldState }) => (
                   <Input
                     {...field}
                     className="mt-1.5"
@@ -193,7 +223,7 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
                     aria-invalid={fieldState.error ? "true" : "false"}
                     placeholder={fieldState.error?.message}
                   />
-                }
+                )}
               />
             </div>
             {/* <div>

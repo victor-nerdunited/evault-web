@@ -14,6 +14,7 @@ import { getPrice } from "@/utils/priceUtil";
 import { usePrices } from "@/hooks/usePrices";
 import { useTokenPrice } from "@/hooks/useTokenprice";
 import { useEffect, useState } from "react";
+import { PriceWarning } from "@/components/PriceWarning";
 
 const CartPage = () => {
   // const [cart, setCart] = useState<Cart | null>(null);

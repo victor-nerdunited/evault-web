@@ -1,6 +1,6 @@
 "use client";
 
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, Suspense, useEffect, useState } from "react";
 import Pagination from "@/shared/Pagination/Pagination";
 import ButtonPrimary from "@/shared/Button/ButtonPrimary";
 import SectionSliderCollections from "@/components/SectionSliderLargeProduct";
@@ -11,12 +11,14 @@ import TabFilters from "@/components/TabFilters";
 import { useCommerce } from "@/utils/commercejs";
 import { Sku } from "@commercelayer/sdk";
 import { getPrices } from "@/utils/priceUtil";
+import { Bars } from "react-loader-spinner";
+import { PriceWarning } from "@/components/PriceWarning";
 
 /* this is a copy of collection/page.tsx */
 const PageCollection = ({}) => {
   const commerceLayer = useCommerce();
 
-  const [products, setProducts] = useState<Sku[]>([]);
+  const [products, setProducts] = useState<Sku[] | null>(null);
 
   useEffect(() => {
     if (!commerceLayer) return;
@@ -37,15 +39,16 @@ const PageCollection = ({}) => {
     <div className={`nc-PageCollection`}>
       <div className="container py-16 lg:pb-28 lg:pt-20 space-y-16 sm:space-y-20 lg:space-y-28">
         <div className="space-y-10 lg:space-y-14">
-          {/* HEADING */}
+          {products ?
           <main>
-            {/* LOOP ITEMS */}
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-10 mt-8 lg:mt-10">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-x-8 gap-y-10 mt-8 lg:mt-10">
               {products?.map((item, index) => (
                 <ProductCard data={item} key={index} />
               ))}
             </div>
           </main>
+          : <div className="flex flex-col align-center items-center"><Bars /><br/><p>Loading...</p></div>
+          }
         </div>
       </div>
     </div>

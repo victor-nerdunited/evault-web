@@ -7,7 +7,7 @@ import { Product, PRODUCTS } from "@/data/data";
 import { useEffect, useMemo, useState } from "react";
 import ButtonPrimary from "@/shared/Button/ButtonPrimary";
 import Input from "@/shared/Input/Input";
-import ContactInfo, { IContactFormInputs } from "./ContactInfo";
+import ContactInfo from "./ContactInfo";
 import PaymentMethod from "./PaymentMethod";
 import Image from "next/image";
 import Link from "next/link";

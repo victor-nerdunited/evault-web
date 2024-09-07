@@ -8,6 +8,7 @@ import SiteHeader from "@/app/SiteHeader";
 import CommonClient from "./CommonClient";
 import { Web3Provider } from "@/lib/web3/Web3Provider";
 import { CheckoutProvider } from "@/lib/CheckoutProvider";
+import { PriceWarning } from "@/components/PriceWarning";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -30,6 +31,7 @@ export default function RootLayout({
             <CheckoutProvider>
               <SiteHeader />
               {children}
+              <PriceWarning />
               <Footer />
             </CheckoutProvider>
           </Web3Provider>

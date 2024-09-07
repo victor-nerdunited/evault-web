@@ -17,7 +17,8 @@ import { getCookie, removeCookie, setCookie } from 'typescript-cookie';
 // }
 
 export interface IContactInfo {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
 }

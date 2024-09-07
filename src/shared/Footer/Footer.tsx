@@ -88,7 +88,7 @@ const Footer: React.FC = () => {
           {/* <div className="col-span-2 flex items-center md:col-span-3">
             <SocialsList1 className="flex items-center space-x-2 lg:space-x-0 lg:flex-col lg:space-y-3 lg:items-start" />
           </div> */}
-          <div className="col-span-10">
+          <div className="col-span-10 pt-2">
             2000 W Ashton Blvd, Lehi, UT 84043. For questions, 
             please contact us at <a style={{textDecoration: "underline"}} href="mailto:support@elementunited.com">support@elementunited.com</a>
           </div>

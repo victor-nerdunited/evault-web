@@ -8,7 +8,7 @@ export const useElmtBalance = () => {
   const tokenBalance = useBalance({ address: account?.address, token: ELMT_TOKEN_ADDRESS });
 
   useEffect(() => {
-    setElmtBalance(Number(tokenBalance?.data?.value) / (10 ** Number(tokenBalance?.data?.decimals)));
+    setElmtBalance(Math.trunc(Number(tokenBalance?.data?.value) / (10 ** Number(tokenBalance?.data?.decimals))));
   }, [tokenBalance?.data?.value]);
 
   return elmtBalance;

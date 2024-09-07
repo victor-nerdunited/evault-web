@@ -3,13 +3,11 @@
 import Label from "@/components/Label/Label";
 import React, { FC, useEffect, useState } from "react";
 import ButtonPrimary from "@/shared/Button/ButtonPrimary";
-import ButtonSecondary from "@/shared/Button/ButtonSecondary";
 import Input from "@/shared/Input/Input";
 import Radio from "@/shared/Radio/Radio";
 import Select from "@/shared/Select/Select";
-import { IContactFormInputs } from "./ContactInfo";
 import { Controller, SubmitErrorHandler, SubmitHandler, useForm } from "react-hook-form";
-import { AddressType, IShippingAddress, useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
+import { AddressType, IContactInfo, IShippingAddress, useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
 import { AddressCreate, OrderUpdate, ShipmentUpdate } from "@commercelayer/sdk";
 import { useCommerce } from "@/utils/commercejs";
 import { useTokenPrice } from "@/hooks/useTokenprice";
@@ -17,7 +15,7 @@ import { usePrices } from "@/hooks/usePrices";
 
 interface Props {
   //checkoutId: string | null;
-  contactInfo: IContactFormInputs | null;
+  contactInfo: IContactInfo | null;
   isActive: boolean;
   onCloseActive: (data: IShippingAddress) => void;
   onOpenActive: () => void;
@@ -38,8 +36,8 @@ const ShippingAddress: FC<Props> = ({
 
   const { handleSubmit, control, watch, setValue } = useForm<IShippingAddress>({
     defaultValues: {
-      firstName: contactInfo?.name.split(" ")[0] ?? "",
-      lastName: contactInfo?.name.split(" ")[1] ?? "",
+      firstName: contactInfo?.firstName ?? "",
+      lastName: contactInfo?.lastName ?? "",
       address1: "",
       city: "",
       country: "",
@@ -48,8 +46,8 @@ const ShippingAddress: FC<Props> = ({
       addressType: AddressType.home,
     },
     values: {
-      firstName: contactInfo?.name.split(" ")[0] ?? "",
-      lastName: contactInfo?.name.split(" ")[1] ?? "",
+      firstName: contactInfo?.firstName ?? "",
+      lastName: contactInfo?.lastName ?? "",
       address1: "",
       city: "",
       country: "US",
