@@ -34,7 +34,8 @@ export async function POST(request: Request) {
     }
     return new Response(JSON.stringify({
       error: error.message,
-      detail: `Unable to update contact: ${error.stack}`
+      detail: `Unable to update contact: ${error.stack}, ${error instanceof brevo.HttpError}`,
+      exception: error,
     }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 }
