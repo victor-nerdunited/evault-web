@@ -9,9 +9,10 @@ import Select from "@/shared/Select/Select";
 import { Controller, SubmitErrorHandler, SubmitHandler, useForm } from "react-hook-form";
 import { AddressType, IContactInfo, IShippingAddress, useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
 import { AddressCreate, OrderUpdate, ShipmentUpdate } from "@commercelayer/sdk";
-import { useCommerce } from "@/utils/commercejs";
+import { useCommerce } from "@/hooks/useCommerce";
 import { useTokenPrice } from "@/hooks/useTokenprice";
 import { usePrices } from "@/hooks/usePrices";
+import { useLogger } from "@/utils/logger";
 
 interface Props {
   //checkoutId: string | null;
@@ -28,6 +29,7 @@ const ShippingAddress: FC<Props> = ({
   onCloseActive,
   onOpenActive,
 }) => {
+  const logger = useLogger("shipping-address");
   const { cart } = useCheckout();
   const { dispatchShippingAddress } = useCheckoutDispatch();
   const commerceLayer = useCommerce();
@@ -119,14 +121,14 @@ const ShippingAddress: FC<Props> = ({
       }
     };
     let order = await commerceLayer?.orders.update(orderUpdate);
-    console.log("[addOrderAddresses] added billing/shipping address to order", order);
+    logger.log("[addOrderAddresses] added billing/shipping address to order", order);
   }
 
   const addShippingMethod = async () => {
     const orderShipments = await commerceLayer!.orders.shipments(cart!.id, {
       include: ["available_shipping_methods"]
     });
-    console.log("[checkout] orderWithShippingMethods", orderShipments);
+    logger.log("[checkout] orderWithShippingMethods", orderShipments);
     const orderShipment = orderShipments.first();
     const shippingMethod = orderShipment!.available_shipping_methods![0];
 
@@ -135,11 +137,11 @@ const ShippingAddress: FC<Props> = ({
       shipping_method: shippingMethod
     }
     const shipment = await commerceLayer!.shipments.update(shipmentUpdate)
-    console.log("[addShippingMethod] shipment", shipment);
+    logger.log("[addShippingMethod] shipment", shipment);
   }
 
   const onError: SubmitErrorHandler<IShippingAddress> = (errors) => {
-    console.log(errors);
+    logger.log(errors);
   };
   
   const renderShippingAddress = () => {

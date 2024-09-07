@@ -2,7 +2,7 @@
 
 import { createContext, Dispatch, useContext, useEffect, useReducer, useState } from 'react';
 
-import { useCommerce } from '@/utils/commercejs';
+import { useCommerce } from '@/hooks/useCommerce';
 import { LineItemUpdate, Order } from '@commercelayer/sdk';
 import { getCookie, removeCookie, setCookie } from 'typescript-cookie';
 
@@ -95,7 +95,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (!orderId)  return;
 
     const fetchCart = async () => {
-      const cart = await commerceLayer.orders.retrieve(orderId, {include: ["line_items"]});
+      const cart = await commerceLayer.orders.retrieve(orderId, {include: ["line_items", "line_items.sku"]});
       dispatchCart(cart);
     }
     fetchCart();
@@ -112,7 +112,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (!commerceLayer) return;
 
     await commerceLayer.line_items.delete(itemId);
-    const order = await commerceLayer.orders.retrieve(cart.id, {include: ["line_items"]});
+    const order = await commerceLayer.orders.retrieve(cart.id, {include: ["line_items", "line_items.sku"]});
     dispatchCart(order as unknown as Order);
   };
 
@@ -125,7 +125,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       quantity: quantity,
     };
     await commerceLayer.line_items.update(lineItemUpdate);
-    const order = await commerceLayer.orders.retrieve(cart.id, {include: ["line_items"]});
+    const order = await commerceLayer.orders.retrieve(cart.id, {include: ["line_items", "line_items.sku"]});
     dispatchCart(order);
   };
 

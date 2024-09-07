@@ -74,7 +74,7 @@ const Button: FC<ButtonProps> = ({
     <button
       disabled={disabled || loading}
       className={`${CLASSES}`}
-      onClick={onClick}
+      onClick={!disabled ? onClick : undefined}
       type={type}
     >
       {loading && _renderLoading()}

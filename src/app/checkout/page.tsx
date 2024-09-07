@@ -17,7 +17,7 @@ import { useAccount, useAccountEffect, useBalance, useConfig, useSendTransaction
 import { getTransactionReceipt, waitForTransactionReceipt } from "@wagmi/core";
 import { ELMT_TOKEN_ABI, ELMT_TOKEN_ADDRESS } from "@/lib/web3/constants";
 import { AddressCreate, Customer, CustomerCreate, LineItem, Order, OrderUpdate, QueryParamsList, ShipmentCreate, ShipmentUpdate, WireTransferCreate } from "@commercelayer/sdk";
-import { useCommerce } from "@/utils/commercejs";
+import { useCommerce } from "@/hooks/useCommerce";
 import { getPrice, getPrices, isGold, isSilver } from "@/utils/priceUtil";
 import { usePrices } from "@/hooks/usePrices";
 import { useTokenPrice } from "@/hooks/useTokenprice";
@@ -27,10 +27,12 @@ import NcModal from "@/shared/NcModal/NcModal";
 import PricesChangedModal from "./PricesChangedMoal";
 import { useRouter } from "next/navigation";
 import { useElmtBalance } from "@/hooks/useElmtBalance";
+import { useLogger } from "@/utils/logger";
 
 const RECIPIENT_ADDRESS = "0xfA38BB29B98d2E867c24c7F68DF4940bd731343F";
 
 const CheckoutPage = () => {
+  const logger = useLogger("checkout");
   const [tabActive, setTabActive] = useState<
     "ContactInfo" | "ShippingAddress" | "PaymentMethod"
   >("ContactInfo");
@@ -87,11 +89,11 @@ const CheckoutPage = () => {
 
   useAccountEffect({
     onConnect: async (data) => {
-      console.log("Connected to Ethereum network", data);
+      logger.log("Connected to Ethereum network", data);
 
     },
     onDisconnect: () => {
-      console.log("Disconnected from Ethereum network");
+      logger.log("Disconnected from Ethereum network");
     },
   });
 
@@ -158,7 +160,7 @@ const CheckoutPage = () => {
     if (!account.address) return;
 
     if (isDebug) {
-      console.log("[handlePlaceOrder] Debug mode enabled, not actually sending token");
+      logger.log("[handlePlaceOrder] Debug mode enabled, not actually sending token");
       router.push(`/order-confirmation?orderid=${cart?.id}&total=${subtotal}&hash=faketxhash${Date.now()}`);
       return;
     }
@@ -179,7 +181,7 @@ const CheckoutPage = () => {
         && /user rejected/i.test(error.shortMessage)) {
         return;
       }
-      console.error("Error sending token", error);
+      logger.error("Error sending token", error);
       throw error;
     } finally {
       setPlacingOrder(false);
@@ -203,10 +205,10 @@ const CheckoutPage = () => {
           order: cart
         }
         const wireTransfer = await commerceLayer.wire_transfers.create(wireTransferCreate);
-        console.log("[checkout] wireTransfer", wireTransfer);
+        logger.log("[checkout] wireTransfer", wireTransfer);
 
         const paymentMethods = await commerceLayer.orders.available_payment_methods(cart.id);
-        console.log("[checkout] paymentMethods", paymentMethods);
+        logger.log("[checkout] paymentMethods", paymentMethods);
 
         const orderUpdate: OrderUpdate = {
           id: cart.id,
@@ -222,7 +224,7 @@ const CheckoutPage = () => {
           }
         };
         const order = await commerceLayer?.orders.update(orderUpdate);
-        console.log("[checkout] order", order);
+        logger.log("[checkout] order", order);
       }
       await addPaymentInfo();
         
@@ -231,10 +233,10 @@ const CheckoutPage = () => {
         _place: true,
       };
       const order = await commerceLayer?.orders.update(orderUpdate);
-      console.log("[checkout] order", order);
+      logger.log("[checkout] order", order);
       router.push(`/order-confirmation?orderid=${order?.id}&total=${subtotal}&hash=${transactionHash}`);
     } catch (error) {
-      console.error("Error placing order", error);
+      logger.error("Error placing order", error);
 
     } finally {
       setPlacingOrder(false);
@@ -260,6 +262,10 @@ const CheckoutPage = () => {
     //const price = item.unit_amount_float;
     const price = getPrice(prices, item.name ?? "", item.sku?.description ?? "", item.sku_code ?? "", tokenPrice);
     const { image_url, name } = item;
+    const quantityOptions = Array.from({ length: item.sku?.metadata?.max_purchase_quantity || 3 }, (_, i) => ({
+      value: i + 1,
+      label: i + 1
+    }));
 
     return (
       <div key={index} className="relative flex py-7 first:pt-0 last:pb-0">
@@ -291,9 +297,7 @@ const CheckoutPage = () => {
                     id="qty"
                     className="form-select text-sm rounded-md py-1 border-slate-200 dark:border-slate-700 relative z-10 dark:bg-slate-800 "
                   >
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
+                    {quantityOptions.map(option => <option value={option.value}>{option.label}</option>)}
                   </select>
                   <Prices
                     contentClass="py-1 px-2 md:py-1.5 md:px-2.5 text-sm font-medium h-full"
@@ -312,7 +316,7 @@ const CheckoutPage = () => {
             <div className="hidden sm:block text-center relative">
               <NcInputNumber
                 className="relative z-10"
-                max={3}
+                max={item.sku?.metadata?.max_purchase_quantity || 3}
                 defaultValue={item.quantity}
                 onChange={(value) => updateQuantity(item.id, value)}
               />

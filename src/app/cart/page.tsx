@@ -7,7 +7,7 @@ import { Product, PRODUCTS } from "@/data/data";
 import ButtonPrimary from "@/shared/Button/ButtonPrimary";
 import Image from "next/image";
 import Link from "next/link";
-import { useCommerce, } from "@/utils/commercejs";
+import { useCommerce, } from "@/hooks/useCommerce";
 import { useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
 import { LineItem, LineItemUpdate, Order } from "@commercelayer/sdk";
 import { getPrice } from "@/utils/priceUtil";
@@ -15,32 +15,23 @@ import { usePrices } from "@/hooks/usePrices";
 import { useTokenPrice } from "@/hooks/useTokenprice";
 import { useEffect, useState } from "react";
 import { PriceWarning } from "@/components/PriceWarning";
+import { useLogger } from "@/utils/logger";
 
 const CartPage = () => {
-  // const [cart, setCart] = useState<Cart | null>(null);
-
-  // useEffect(() => {
-  //   const fetchCart = async () => {
-  //     const cart = await getCart();
-  //     setCart(cart);
-  //     console.log("cart cart", cart);
-  //   };
-  //   fetchCart();
-  // }, []);
+  const logger = useLogger("cart");
   const { cart, contactInfo, shippingAddress, removeItem, updateQuantity } = useCheckout();
   const {dispatchCart: cartDispatch} = useCheckoutDispatch();
   const commerceLayer = useCommerce()!;
   const { prices } = usePrices();
   const { tokenPrice } = useTokenPrice();
-
   const [subtotal, setSubtotal] = useState(0);
   useEffect(() => {
-    console.log("[cart] cart", cart);
+    logger.log("[cart] cart", cart);
     if (!cart) return;
 
     const _subtotal = cart.line_items?.reduce((acc, item) => {
       const price = getPrice(prices!, item.name!, item.sku?.description ?? "", item.sku_code ?? "", tokenPrice);
-      console.log("[cart] price", price);
+      logger.log("[cart] price", price);
       return acc + price * item.quantity;
     }, 0) ?? 0;
     setSubtotal(_subtotal);
@@ -68,6 +59,10 @@ const CartPage = () => {
   const renderProduct = (item: LineItem, index: number) => {
     const price = getPrice(prices, item.name ?? "", item.sku?.description ?? "", item.sku_code ?? "" , tokenPrice);
     const { image_url, name, quantity } = item;
+    const quantityOptions = Array.from({ length: item.sku?.metadata?.max_purchase_quantity || 3 }, (_, i) => ({
+      value: i + 1,
+      label: i + 1
+    }));
 
     return (
       <div
@@ -102,9 +97,7 @@ const CartPage = () => {
                     id="qty"
                     className="form-select text-sm rounded-md py-1 border-slate-200 dark:border-slate-700 relative z-10 dark:bg-slate-800 "
                   >
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
+                    {quantityOptions.map(option => <option value={option.value}>{option.label}</option>)}
                   </select>
                   <Prices
                     contentClass="py-1 px-2 md:py-1.5 md:px-2.5 text-sm font-medium h-full"
@@ -116,7 +109,7 @@ const CartPage = () => {
               <div className="hidden sm:block text-center relative">
                 <NcInputNumber
                   className="relative z-10"
-                  max={3}
+                  max={item.sku?.metadata?.max_purchase_quantity || 3}
                   defaultValue={quantity}
                   onChange={(value) => updateQuantity(item.id, value)}
                 />

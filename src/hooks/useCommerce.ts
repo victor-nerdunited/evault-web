@@ -4,7 +4,7 @@ import { useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
 
 // new
 
-import CommerceLayer, { CommerceLayerClient, Order } from '@commercelayer/sdk'
+import CommerceLayer, { CommerceLayerClient, Order, RequestObj, ResponseObj } from '@commercelayer/sdk'
 import { useEffect, useState } from "react";
 
 export function useCommerce() {
@@ -38,10 +38,12 @@ export function useCommerce() {
     if (token_expires) {
       const { expires, token } = JSON.parse(token_expires);
       if (expires && new Date(expires) > new Date()) {
-        setCommerceLayer(CommerceLayer({
+        const commerceLayer = CommerceLayer({
           organization: 'element-united',
           accessToken: token
-        }));
+        });
+        commerceLayer.addResponseInterceptor(responseInterceptor);
+        setCommerceLayer(commerceLayer);
         return;
       }
     }
@@ -50,4 +52,17 @@ export function useCommerce() {
   }, []);
   
   return commerceLayer;
+}
+
+const responseInterceptor = async (response: ResponseObj): Promise<ResponseObj> => {
+  if (response.status === 200 && /.*skus.*/.test(response.url)) {
+    const jsonObj = await response.json();
+    if (jsonObj?.data[0]?.meta?.mode === "test") {
+      localStorage.setItem('is_test_mode', 'true');
+    } else {
+      localStorage.removeItem('is_test_mode');
+    }
+    return new Response(JSON.stringify(jsonObj));
+  }
+  return response;
 }

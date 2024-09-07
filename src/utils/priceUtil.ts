@@ -1,5 +1,9 @@
+import { useLogger } from "./logger";
+
 const PRICE_MULTIPLIER_GOLD = 1.10;
 const PRICE_MULTIPLIER_SILVER = 1.40;
+
+const logger = useLogger("mineral-prices");
 
 export interface MineralPrices {
   goldPrice: number;
@@ -15,7 +19,7 @@ export const isSilver = (name: string, description: string, code: string) => {
 }
 
 export const getPrice = (prices: MineralPrices, name: string, description: string, code: string, tokenPrice: number) => {
-  console.log("[getPrice] prices", prices, tokenPrice);
+  logger.log("[getPrice] prices", prices, tokenPrice);
   let price = 0;
   if (isGold(name, description, code)) {
     price = Number(prices.goldPrice);
@@ -24,16 +28,17 @@ export const getPrice = (prices: MineralPrices, name: string, description: strin
   }
 
   const result = Number((price / tokenPrice).toFixed());
-  console.log("[getPrice] result", result, price, tokenPrice);
+  logger.log("[getPrice] result", result, price, tokenPrice);
   return result;
 }
 
 export const getPrices = async (forceRefresh: boolean = false): Promise<MineralPrices> => {
-  // // TODO: remove this
-  // return {
-  //   goldPrice: 0.001,
-  //   silverPrice: 0.0005,
-  // };
+  if (localStorage.getItem('is_test_mode') === "true") {
+    return {
+      goldPrice: 0.005,
+      silverPrice: 0.001,
+    };
+  }
 
   const cacheKey = "goldprice";
   const cacheEntry = localStorage.getItem(cacheKey);

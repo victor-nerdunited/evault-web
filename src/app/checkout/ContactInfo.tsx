@@ -11,7 +11,8 @@ import {
   useCheckoutDispatch,
 } from "@/lib/CheckoutProvider";
 import { Customer, CustomerCreate, CustomerUpdate } from "@commercelayer/sdk";
-import { useCommerce } from "@/utils/commercejs";
+import { useCommerce } from "@/hooks/useCommerce";
+import { useLogger } from "@/utils/logger";
 
 interface Props {
   isActive: boolean;
@@ -20,6 +21,7 @@ interface Props {
 }
 
 const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
+  const logger = useLogger("contact-info");
   const { contactInfo } = useCheckout();
   const { dispatchContactInfo } = useCheckoutDispatch();
   const commerceLayer = useCommerce();
@@ -59,7 +61,7 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
 
       await commerceLayer!.customers.create(customerCreate);
     } catch (error) {
-      console.error("Error creating customer", error);
+      logger.error("Error creating customer", error);
     }
   };
 

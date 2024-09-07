@@ -18,8 +18,15 @@ import Image from "next/image";
 import Link from "next/link";
 import NcImage from "@/shared/NcImage/NcImage";
 import { useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
-import { LineItem, LineItemCreate, LineItemUpdate, Order, OrderCreate, Sku } from "@commercelayer/sdk";
-import { useCommerce } from "@/utils/commercejs";
+import {
+  LineItem,
+  LineItemCreate,
+  LineItemUpdate,
+  Order,
+  OrderCreate,
+  Sku,
+} from "@commercelayer/sdk";
+import { useCommerce } from "@/hooks/useCommerce";
 import { getPrice, getPrices } from "@/utils/priceUtil";
 import { getTokenPrice } from "@/utils/tokenPrice";
 import { useTokenPrice } from "@/hooks/useTokenprice";
@@ -42,6 +49,7 @@ const ProductCard: FC<ProductCardProps> = ({
     description,
     id,
     image_url,
+    metadata,
     name,
     // rating,
     // numberOfReviews,
@@ -55,43 +63,63 @@ const ProductCard: FC<ProductCardProps> = ({
   const { cart } = useCheckout();
   const { dispatchCart } = useCheckoutDispatch();
   const [price, setPrice] = useState<number>(0);
+  const [updatingCart, setUpdatingCart] = useState<boolean>(false);
   const { tokenPrice } = useTokenPrice();
   const { prices } = usePrices();
 
   useEffect(() => {
     const fetchPrices = async () => {
-      const price = await getPrice(prices, name, description ?? "", code ?? "", tokenPrice);
+      const price = await getPrice(
+        prices,
+        name,
+        description ?? "",
+        code ?? "",
+        tokenPrice
+      );
       setPrice(price);
-    }
+    };
     fetchPrices();
   }, [tokenPrice]);
 
   const notifyAddTocart = async () => {
-    let order = cart;
-    if (!order) {
-      order = await commerceLayer.orders.create({ guest: true } as OrderCreate);
+    setUpdatingCart(true);
+    try {
+      let order = cart;
+      if (!order) {
+        order = await commerceLayer.orders.create({
+          guest: true,
+        } as OrderCreate);
+      }
+      const lineItem = order.line_items?.find(
+        (li) => li.sku_code === data.code
+      );
+      const maxPurchaseQuantity = parseInt(lineItem?.sku?.metadata?.max_purchase_quantity);
+      if (lineItem && !isNaN(maxPurchaseQuantity) && maxPurchaseQuantity <= lineItem.quantity) return;
+
+      if (lineItem) {
+        const lineItemUpdate: LineItemUpdate = {
+          id: lineItem.id,
+          quantity: lineItem.quantity + 1,
+        };
+        await commerceLayer.line_items.update(lineItemUpdate);
+      } else {
+        const lineItemCreate: LineItemCreate = {
+          item: data,
+          quantity: 1,
+          order,
+        };
+        await commerceLayer.line_items.create(lineItemCreate);
+      }
+      order = await commerceLayer.orders.retrieve(order.id, {
+        include: ["line_items", "line_items.sku"],
+      });
+      dispatchCart(order as unknown as Order);
+    } catch (error) {
+      console.error("[ProductCard] error", error);
+    } finally {
+      setUpdatingCart(false);
     }
-    const lineItem = order.line_items?.find(li => li.sku_code === data.code);
-    if (lineItem && lineItem.quantity < 3) {
-      const lineItemUpdate: LineItemUpdate = {
-        id: lineItem.id,
-        quantity: lineItem.quantity + 1
-      };
-      await commerceLayer.line_items.update(lineItemUpdate);
-    } else {
-      const lineItemCreate: LineItemCreate = {
-        item: data,
-        quantity: 1,
-        order
-      };
-      await commerceLayer.line_items.create(lineItemCreate); 
-    }
-    order = await commerceLayer.orders.retrieve(order.id, {
-      include: ["line_items"]
-    });
-    console.log("[ProductCard] order", order);
-    dispatchCart(order as unknown as Order);
-    
+
     toast.custom(
       (t) => (
         <Transition
@@ -199,6 +227,7 @@ const ProductCard: FC<ProductCardProps> = ({
     return (
       <div className="absolute bottom-0 group-hover:bottom-4 inset-x-1 flex justify-center opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
         <ButtonPrimary
+          disabled={updatingCart}
           className="shadow-lg"
           fontSize="text-xs"
           sizeClass="py-2 px-4"
@@ -229,14 +258,14 @@ const ProductCard: FC<ProductCardProps> = ({
 
         <div className="relative flex-shrink-0 rounded-3xl overflow-hidden z-1 group">
           {/* <Link href={"/product-detail"} className="block"> */}
-            <NcImage
-              containerClassName="flex aspect-w-11 aspect-h-12 w-full h-0"
-              src={image_url || ""}
-              className="object-contain w-full h-full"
-              fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1200px) 50vw, 40vw"
-              alt="product"
-            />
+          <NcImage
+            containerClassName="flex aspect-w-11 aspect-h-12 w-full h-0"
+            src={image_url || ""}
+            className="object-contain w-full h-full"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1200px) 50vw, 40vw"
+            alt="product"
+          />
           {/* </Link> */}
           {/* <ProductStatus status={status} /> */}
           {/* <LikeButton liked={isLiked} className="absolute top-3 end-3 z-10" /> */}
@@ -252,6 +281,7 @@ const ProductCard: FC<ProductCardProps> = ({
             </h2>
             <p className={`text-sm text-slate-500 dark:text-slate-400 mt-1 `}>
               <div dangerouslySetInnerHTML={{ __html: description ?? "" }} />
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-3">Limit {metadata?.max_purchase_quantity} per customer</div>
             </p>
           </div>
 
@@ -264,6 +294,8 @@ const ProductCard: FC<ProductCardProps> = ({
               </span>
             </div> */}
             <ButtonPrimary
+              disabled={updatingCart}
+              loading={updatingCart}
               className="shadow-lg"
               fontSize="text-xs"
               sizeClass="py-2 px-4"

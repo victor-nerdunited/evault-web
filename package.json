@@ -25,6 +25,7 @@
     "connectkit": "^1.8.2",
     "ethers": "^6.13.2",
     "framer-motion": "^11.2.4",
+    "loglevel": "^1.9.2",
     "moralis": "^2.27.2",
     "next": "^14.2.3",
     "rc-slider": "^10.6.2",

@@ -3,22 +3,6 @@ const nextConfig = {
   experimental: {
     typedRoutes: true,
   },
-  // images: {
-  //   remotePatterns: [
-  //     {
-  //       protocol: "https",
-  //       hostname: "images.pexels.com",
-  //       port: "",
-  //       pathname: "/**",
-  //     },
-  //     {
-  //       protocol: "https",
-  //       hostname: "images.unsplash.com",
-  //       port: "",
-  //       pathname: "/**",
-  //     },
-  //   ],
-  // },
   images: {
     remotePatterns: [
       {
@@ -36,8 +20,8 @@ const nextConfig = {
     ],
   },
   webpack: config => {
-    config.externals.push('pino-pretty', 'lokijs', 'encoding')
-    return config
+    config.externals.push('pino-pretty', 'lokijs', 'encoding');
+    return config;
   }
 };
 

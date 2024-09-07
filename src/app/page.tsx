@@ -8,7 +8,7 @@ import SectionPromo1 from "@/components/SectionPromo1";
 import ProductCard from "@/components/ProductCard";
 import { PRODUCTS } from "@/data/data";
 import TabFilters from "@/components/TabFilters";
-import { useCommerce } from "@/utils/commercejs";
+import { useCommerce } from "@/hooks/useCommerce";
 import { Sku } from "@commercelayer/sdk";
 import { getPrices } from "@/utils/priceUtil";
 import { Bars } from "react-loader-spinner";
