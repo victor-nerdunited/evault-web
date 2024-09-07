@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     const { body: brevoContact } = await contactApi.getContactInfo(customer.attributes.email);
     updateBrevoContact(contactApi, brevoContact, customer, order);
     return new Response("OK", { status: 200, headers: { 'Content-Type': 'application/json' } });
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof brevo.HttpError) {
       const httpError = error as brevo.HttpError;
       if (httpError.response.statusCode === 404) {
@@ -28,9 +28,8 @@ export async function POST(request: Request) {
         return new Response("OK", { status: 200, headers: { 'Content-Type': 'application/json' } });
       }
     }
+    return new Response(JSON.stringify({error: error.message}), { status: 400, headers: { 'Content-Type': 'application/json' } });
   }
-
-  return new Response("OK", { status: 200, headers: { 'Content-Type': 'application/json' } });
 }
 
 async function createBrevoContact(contactApi: brevo.ContactsApi, customer: any, order: any): Promise<void> {
@@ -75,11 +74,6 @@ async function updateBrevoContact(contactApi: brevo.ContactsApi, brevoContact: b
     },
   };
   
-  try {
-    await contactApi.updateContact(brevoContact.email!, updateContact);
-    console.log('Brevo contact updated with new list ID and order ID');
-  } catch (error) {
-    console.error('Error updating Brevo contact:', error);
-    throw error;
-  }
+  await contactApi.updateContact(brevoContact.email!, updateContact);
+  console.log('Brevo contact updated with new list ID and order ID');
 }
