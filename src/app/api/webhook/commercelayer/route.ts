@@ -3,6 +3,10 @@ import * as brevo from '@getbrevo/brevo';
 const ELMT_SHOP_LIST_ID = 67;
 
 export async function POST(request: Request) {
+  if (!process.env.BREVO_API_KEY) {
+    return new Response('Endpoint unhealthy', { status: 500 });
+  }
+
   if (process.env.NODE_ENV === 'production') {
     const signature = request.headers.get('x-commercelayer-signature');
     if (!signature) return new Response('Unauthorized', { status: 400 });
@@ -28,7 +32,10 @@ export async function POST(request: Request) {
         return new Response("OK", { status: 200, headers: { 'Content-Type': 'application/json' } });
       }
     }
-    return new Response(JSON.stringify({error: error.message}), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({
+      error: error.message,
+      detail: `Unable to update contact: ${error.stack}`
+    }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 }
 
