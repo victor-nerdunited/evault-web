@@ -24,15 +24,6 @@ export async function POST(request: Request) {
     (item: any) => item.type === "customers"
   );
 
-  customer.attributes = {
-    email: "vponce@nerdunited.com",
-    metadata: {
-      first_name: "John",
-      last_name: "Doe",
-      phone: "1234567890",
-    },
-  };
-
   try {
     await sendOrderConfirmationEmail(customer, order);
   } catch (error: any) {
