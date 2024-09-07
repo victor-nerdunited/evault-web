@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@commercelayer/sdk": "^6.14.1",
+    "@getbrevo/brevo": "^2.2.0",
     "@glidejs/glide": "^3.6.0",
     "@headlessui/react": "^2.0.3",
     "@heroicons/react": "^2.1.3",
