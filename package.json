@@ -24,7 +24,7 @@
     "beautiful-react-hooks": "^5.0.2",
     "connectkit": "^1.8.2",
     "ethers": "^6.13.2",
-    "framer-motion": "^11.2.4",
+    "framer-motion": "^11.5.4",
     "loglevel": "^1.9.2",
     "moralis": "^2.27.2",
     "next": "^14.2.3",

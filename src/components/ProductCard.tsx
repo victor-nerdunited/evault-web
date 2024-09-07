@@ -279,10 +279,10 @@ const ProductCard: FC<ProductCardProps> = ({
             <h2 className="nc-ProductCard__title text-base font-semibold transition-colors">
               {name}
             </h2>
-            <p className={`text-sm text-slate-500 dark:text-slate-400 mt-1 `}>
+            <div className={`text-sm text-slate-500 dark:text-slate-400 mt-1 `}>
               <div dangerouslySetInnerHTML={{ __html: description ?? "" }} />
               <div className="text-xs text-slate-500 dark:text-slate-400 mt-3">Limit {metadata?.max_purchase_quantity} per customer</div>
-            </p>
+            </div>
           </div>
 
           <div className="flex justify-between items-end ">

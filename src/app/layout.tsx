@@ -8,6 +8,14 @@ import SiteHeader from "@/app/SiteHeader";
 import CommonClient from "./CommonClient";
 import { Web3Provider } from "@/lib/web3/Web3Provider";
 import { CheckoutProvider } from "@/lib/CheckoutProvider";
+// import {
+//   ChakraBaseProvider,
+//   ChakraProvider,
+//   extendBaseTheme,
+//   Progress,
+//   withDefaultColorScheme,
+// } from "@chakra-ui/react";
+//import { ChakraProvider } from "@chakra-ui/provider";
 import { PriceWarning } from "@/components/PriceWarning";
 
 const poppins = Poppins({
@@ -15,6 +23,15 @@ const poppins = Poppins({
   display: "swap",
   weight: ["300", "400", "500", "600", "700"],
 });
+
+// const theme = extendBaseTheme({
+//   withDefaultColorScheme: {
+//     colorScheme: "blue",
+//   },
+//   components: {
+//     Progress,
+//   },
+// });
 
 export default function RootLayout({
   children,
@@ -26,17 +43,20 @@ export default function RootLayout({
   return (
     <html lang="en" dir="" className={poppins.className}>
       <body className="bg-white text-base dark:bg-neutral-900 text-neutral-900 dark:text-neutral-200">
-        <div>
-          <Web3Provider>
-            <CheckoutProvider>
-              <SiteHeader />
-              {children}
-              <PriceWarning />
-              <Footer />
-            </CheckoutProvider>
-          </Web3Provider>
-        </div>
-        <CommonClient />
+        {/* <ChakraProvider>
+          <Progress size="xs" isIndeterminate /> */}
+          <div>
+            <Web3Provider>
+              <CheckoutProvider>
+                <SiteHeader />
+                {children}
+                <PriceWarning />
+                <Footer />
+              </CheckoutProvider>
+            </Web3Provider>
+          </div>
+          <CommonClient />
+        {/* </ChakraProvider> */}
       </body>
     </html>
   );
