@@ -16,6 +16,11 @@ import { useTokenPrice } from "@/hooks/useTokenprice";
 import { useEffect, useState } from "react";
 import { PriceWarning } from "@/components/PriceWarning";
 import { useLogger } from "@/utils/logger";
+import { estimateGas } from "@wagmi/core";
+import { useAccount, useBalance, useClient, useConfig, useEstimateFeesPerGas, useFeeData, usePublicClient } from "wagmi";
+import * as ethers from "ethers";
+import { ELMT_TOKEN_ABI, ELMT_TOKEN_ADDRESS, ELMT_WALLET_ADDRESS } from "@/lib/web3/constants";
+import { useEstimateGasFee } from "@/hooks/useEstimateGasFee";
 
 const CartPage = () => {
   const logger = useLogger("cart");
@@ -24,7 +29,17 @@ const CartPage = () => {
   const commerceLayer = useCommerce()!;
   const { prices } = usePrices();
   const { tokenPrice } = useTokenPrice();
+  
+  const config = useConfig();
+  const account = useAccount();
+  const token = useBalance({ address: account?.address, token: ELMT_TOKEN_ADDRESS });
+  // get the gas price
+  // const estimatedFees = useEstimateFeesPerGas();
+  // const publicClient = usePublicClient();
+  
   const [subtotal, setSubtotal] = useState(0);
+  const { gasCost } = useEstimateGasFee(subtotal);
+
   useEffect(() => {
     logger.log("[cart] cart", cart);
     if (!cart) return;
@@ -37,6 +52,33 @@ const CartPage = () => {
     setSubtotal(_subtotal);
   }, [cart, tokenPrice, prices]);
   
+  // useEffect(() => {
+  //   const callEstimateGas = async () => {
+  //     if (token.data && subtotal > 0 && estimatedFees.data) {
+  //       // const gasEstimate = await estimateGas(config, {
+  //       //   to: ELMT_WALLET_ADDRESS,
+  //       //   value: BigInt(subtotal * 10 ** token.data.decimals),
+  //       // });
+  //       // logger.log("[cart] gas estimate", gasEstimate, estimatedFees.data.maxFeePerGas, estimatedFees.data.maxFeePerGas);
+
+  //       const gas = await publicClient.estimateContractGas({
+  //         address: ELMT_TOKEN_ADDRESS,
+  //         abi: ELMT_TOKEN_ABI,
+  //         functionName: 'transfer',
+  //         args: [ELMT_WALLET_ADDRESS, BigInt(subtotal * 10 ** token.data.decimals)],
+  //         account: account.address
+  //       })
+  //       const maxFeePerGas = estimatedFees.data.maxFeePerGas!;
+  //       const gasFloat = parseFloat(ethers.formatEther(gas));
+  //       const feeFloat = parseFloat(ethers.formatEther(maxFeePerGas));
+  //       const gasCost = gasFloat * feeFloat * (10 ** 18);
+  //       logger.log("[cart] gas estimate2", gasCost, gasFloat, feeFloat);
+  //     }
+  //   }
+  //   callEstimateGas();
+  // }, [subtotal, token.data, estimatedFees.data]);
+
+
   const renderStatusSoldout = () => {
     return (
       <div className="rounded-full flex items-center justify-center px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
@@ -163,7 +205,7 @@ const CartPage = () => {
               <h3 className="text-lg font-semibold ">Order Summary</h3>
               <div className="mt-7 text-sm text-slate-500 dark:text-slate-400 divide-y divide-slate-200/70 dark:divide-slate-700/80">
                 <div className="flex justify-between pb-4">
-                  <span>Subtotal</span>
+                  <span>Total</span>
                   <span className="font-semibold text-slate-900 dark:text-slate-200">
                     {subtotal.toLocaleString()} ELMT
                   </span>
@@ -180,9 +222,15 @@ const CartPage = () => {
                     $24.90
                   </span>
                 </div> */}
-                <div className="flex justify-between font-semibold text-slate-900 dark:text-slate-200 text-base pt-4">
+                {/* <div className="flex justify-between font-semibold text-slate-900 dark:text-slate-200 text-base pt-4">
                   <span>Order total</span>
                   <span>{subtotal.toLocaleString()} ELMT</span>
+                </div> */}
+                <div className="flex justify-between py-4">
+                  <span>Estimated gas fee</span>
+                  <span className="font-semibold text-slate-900 dark:text-slate-200">
+                    {gasCost.toFixed(6)} ETH
+                  </span>
                 </div>
               </div>
               <ButtonPrimary href="/checkout" className="mt-8 w-full">

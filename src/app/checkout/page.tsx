@@ -15,7 +15,7 @@ import { IShippingAddress, useCheckout, useCheckoutDispatch } from "@/lib/Checko
 import ShippingAddress from "./ShippingAddress";
 import { useAccount, useAccountEffect, useBalance, useConfig, useSendTransaction, useWriteContract } from "wagmi";
 import { getTransactionReceipt, waitForTransactionReceipt } from "@wagmi/core";
-import { ELMT_TOKEN_ABI, ELMT_TOKEN_ADDRESS } from "@/lib/web3/constants";
+import { ELMT_TOKEN_ABI, ELMT_TOKEN_ADDRESS, ELMT_WALLET_ADDRESS } from "@/lib/web3/constants";
 import { AddressCreate, Customer, CustomerCreate, LineItem, Order, OrderUpdate, QueryParamsList, ShipmentCreate, ShipmentUpdate, WireTransferCreate } from "@commercelayer/sdk";
 import { useCommerce } from "@/hooks/useCommerce";
 import { getPrice, getPrices, isGold, isSilver } from "@/utils/priceUtil";
@@ -28,8 +28,8 @@ import PricesChangedModal from "./PricesChangedMoal";
 import { useRouter } from "next/navigation";
 import { useElmtBalance } from "@/hooks/useElmtBalance";
 import { useLogger } from "@/utils/logger";
+import { useEstimateGasFee } from "@/hooks/useEstimateGasFee";
 
-const RECIPIENT_ADDRESS = "0xfA38BB29B98d2E867c24c7F68DF4940bd731343F";
 
 const CheckoutPage = () => {
   const logger = useLogger("checkout");
@@ -65,6 +65,8 @@ const CheckoutPage = () => {
   const router = useRouter();
   const elmtBalance = useElmtBalance();
   const [isDebug, setIsDebug] = useState(false);
+
+  const { gasCost } = useEstimateGasFee(subtotal);
 
   //const fromToken = '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'; // USDC
   const fromToken = 'eth'; // ETH
@@ -172,7 +174,7 @@ const CheckoutPage = () => {
       setSubmittingTransaction(true);
 
       await sendToken(
-        RECIPIENT_ADDRESS, 
+        ELMT_WALLET_ADDRESS, 
         BigInt(subtotal * 10 ** token.data.decimals)
         //BigInt(10 * 10 ** token.data.decimals)
       );
@@ -413,7 +415,7 @@ const CheckoutPage = () => {
               {cart?.line_items?.filter(item => item.item_type === "skus").map(renderProduct)}
             </div>
 
-            <div className="mt-10 pt-6 text-sm text-slate-500 dark:text-slate-400 border-t border-slate-200/70 dark:border-slate-700 ">
+            <div className="mt-10 pt-6 text-sm text-slate-500 dark:text-slate-400 border-t border-slate-200/70 dark:border-slate-700 dark:text-slate-400 divide-y divide-slate-200/70 dark:divide-slate-700/80">
               {/* <div>
                 <Label className="text-sm">Discount code</Label>
                 <div className="flex mt-1.5">
@@ -424,8 +426,8 @@ const CheckoutPage = () => {
                 </div>
               </div> */}
 
-              <div className="mt-4 flex justify-between py-2.5">
-                <span>Subtotal</span>
+              <div className="flex justify-between pb-4">
+                <span>Total</span>
                 <span className="font-semibold text-slate-900 dark:text-slate-200">
                   {subtotal.toLocaleString()} ELMT
                 </span>
@@ -442,9 +444,15 @@ const CheckoutPage = () => {
                   $24.90
                 </span>
               </div> */}
-              <div className="flex justify-between font-semibold text-slate-900 dark:text-slate-200 text-base pt-4">
+              {/* <div className="flex justify-between font-semibold text-slate-900 dark:text-slate-200 text-base pt-4">
                 <span>Order total</span>
                 <span>{subtotal.toLocaleString()} ELMT</span>
+              </div> */}
+              <div className="flex justify-between py-4">
+                <span>Estimated gas fee</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-200">
+                  {gasCost.toFixed(6)} ETH
+                </span>
               </div>
             </div>
             <ButtonPrimary 

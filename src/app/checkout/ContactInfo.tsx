@@ -187,7 +187,7 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
                 rules={{
                   required: "Phone is required",
                   pattern: {
-                    value: /^\+?[1-9][0-9]{7,14}$/,
+                    value: /^\+?[1-9][0-9]{7,15}$/,
                     message: "Invalid phone number",
                   },
                 }}
