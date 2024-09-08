@@ -100,6 +100,9 @@ const ProductCard: FC<ProductCardProps> = ({
         const lineItemUpdate: LineItemUpdate = {
           id: lineItem.id,
           quantity: lineItem.quantity + 1,
+          metadata: {
+            price: price,
+          },
         };
         await commerceLayer.line_items.update(lineItemUpdate);
       } else {
@@ -107,6 +110,9 @@ const ProductCard: FC<ProductCardProps> = ({
           item: data,
           quantity: 1,
           order,
+          metadata: {
+            price: price,
+          },
         };
         await commerceLayer.line_items.create(lineItemCreate);
       }

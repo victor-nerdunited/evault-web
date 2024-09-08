@@ -16,7 +16,7 @@ import ShippingAddress from "./ShippingAddress";
 import { useAccount, useAccountEffect, useBalance, useConfig, useSendTransaction, useWriteContract } from "wagmi";
 import { getTransactionReceipt, waitForTransactionReceipt } from "@wagmi/core";
 import { ELMT_TOKEN_ABI, ELMT_TOKEN_ADDRESS, ELMT_WALLET_ADDRESS } from "@/lib/web3/constants";
-import { AddressCreate, Customer, CustomerCreate, LineItem, Order, OrderUpdate, QueryParamsList, ShipmentCreate, ShipmentUpdate, WireTransferCreate } from "@commercelayer/sdk";
+import { AddressCreate, Customer, CustomerCreate, LineItem, LineItemUpdate, Order, OrderUpdate, QueryParamsList, ShipmentCreate, ShipmentUpdate, WireTransferCreate } from "@commercelayer/sdk";
 import { useCommerce } from "@/hooks/useCommerce";
 import { getPrice, getPrices, isGold, isSilver } from "@/utils/priceUtil";
 import { usePrices } from "@/hooks/usePrices";
@@ -236,6 +236,7 @@ const CheckoutPage = () => {
       };
       const order = await commerceLayer?.orders.update(orderUpdate);
       logger.log("[checkout] order", order);
+      await updateLineItemPrices();
       router.push(`/order-confirmation?orderid=${order?.number}&total=${subtotal}&hash=${transactionHash}`);
     } catch (error) {
       logger.error("Error placing order", error);
@@ -243,6 +244,24 @@ const CheckoutPage = () => {
     } finally {
       setPlacingOrder(false);
     }
+  }
+
+  const updateLineItemPrices = async () => {
+    if (!cart) return;
+    for(const item of cart.line_items ?? []) {
+      try {
+        const price = getPrice(prices, item.name ?? "", item.sku?.description ?? "", item.sku_code ?? "", tokenPrice);
+        const lineItemUpdate: LineItemUpdate = {
+          id: item.id,
+          metadata: {
+            price,
+          },
+        };
+        await commerceLayer.line_items.update(lineItemUpdate);
+      } catch (error) {
+        logger.error("Error updating line item price", error);
+      }
+    } 
   }
 
   useEffect(() => {
@@ -415,7 +434,7 @@ const CheckoutPage = () => {
               {cart?.line_items?.filter(item => item.item_type === "skus").map(renderProduct)}
             </div>
 
-            <div className="mt-10 pt-6 text-sm text-slate-500 dark:text-slate-400 border-t border-slate-200/70 dark:border-slate-700 dark:text-slate-400 divide-y divide-slate-200/70 dark:divide-slate-700/80">
+            <div className="mt-10 pt-6 text-sm text-slate-500 border-t border-slate-200/70 dark:border-slate-700 dark:text-slate-400 divide-y divide-slate-200/70 dark:divide-slate-700/80">
               {/* <div>
                 <Label className="text-sm">Discount code</Label>
                 <div className="flex mt-1.5">
