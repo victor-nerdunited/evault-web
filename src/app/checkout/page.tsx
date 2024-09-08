@@ -234,7 +234,7 @@ const CheckoutPage = () => {
       };
       const order = await commerceLayer?.orders.update(orderUpdate);
       logger.log("[checkout] order", order);
-      router.push(`/order-confirmation?orderid=${order?.id}&total=${subtotal}&hash=${transactionHash}`);
+      router.push(`/order-confirmation?orderid=${order?.number}&total=${subtotal}&hash=${transactionHash}`);
     } catch (error) {
       logger.error("Error placing order", error);
 

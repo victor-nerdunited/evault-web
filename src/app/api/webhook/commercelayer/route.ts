@@ -140,6 +140,7 @@ async function sendOrderConfirmationEmail(
       <h2>Order Details</h2>
       <ul>
         <li>Order ID: ${order.attributes.number}</li>
+        <li>Order Amount: ${order.attributes.metadata.amount} ELMT</li>
         <li>Order Date: ${new Date(order.attributes.placed_at).toLocaleString()}</li>
         <li>Transaction: <a href="https://etherscan.io/tx/${order.attributes.metadata.transaction_hash}">${order.attributes.metadata.transaction_hash}</a></li>
       </ul>
