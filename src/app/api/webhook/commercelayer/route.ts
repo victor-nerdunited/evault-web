@@ -136,20 +136,35 @@ async function sendOrderConfirmationEmail(
   <html>
     <body>
       <h1>Order Confirmation - Element United</h1>
-      <p>Hi ${customer.attributes.metadata.first_name}, thank you for your order! Your order has been received and is being processed.</p>
+      <p>Hello ${customer.attributes.metadata.first_name},
+        <br /><br />
+        Thank you for your recent order of gold and/or silver coins in ELMT. We value your 
+        trust in Element United and appreciate your commitment to a future built on 
+        transparency and sustainability. Your E-Vault order is currently being processed. 
+        Please be advised that there will be a short processing period to ensure the highest 
+        standards of verification and preparation for your coin(s). Once your order is ready 
+        for dispatch, you will receive a follow-up email containing detailed shipping and 
+        tracking information.
+      </p>
       <h2>Order Details</h2>
-      <ul>
-        <li>Order No.: ${order.attributes.number}</li>
-        <li>Order Amount: ${order.attributes.metadata.amount} ELMT</li>
-        <li>Order Date: ${new Date(order.attributes.placed_at).toLocaleString()}</li>
-        <li>Transaction: <a href="https://etherscan.io/tx/${order.attributes.metadata.transaction_hash}">${order.attributes.metadata.transaction_hash}</a></li>
+      <ul style="list-style-type: none; padding: 0; margin: 0;">
+        <li style="margin-bottom: 10px;"><strong>Order No:</strong> ${order.attributes.number}</li>
+        <li style="margin-bottom: 10px;"><strong>Order Amount:</strong> ${order.attributes.metadata.amount} ELMT</li>
+        <li style="margin-bottom: 10px;"><strong>Order Date:</strong> ${new Date(order.attributes.placed_at).toLocaleString()}</li>
+        <li style="margin-bottom: 10px;">
+          <strong>Transaction:</strong> 
+          <a href="https://etherscan.io/tx/${order.attributes.metadata.transaction_hash}">${order.attributes.metadata.transaction_hash}</a>
+        </li>
       </ul>
       <p>
-        If you have any questions, please contact us at <a href="mailto:info@elementunited.com">info@elementunited.com</a>.
+        If you have any questions or require assistance, please do not 
+        hesitate to contact us at <a href="mailto:support@elementunited.com">support@elementunited.com</a>. 
+        Please include your applicable order information.
+        Again, thank you for ordering from E-Vault and supporting Element United's mission.
         <br /><br />
         Sincerely,
-        <br />
-        Element United
+        <br /><br />
+        The Element United Team
       </p>
     </body>
   </html>
