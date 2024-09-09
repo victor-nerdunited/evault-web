@@ -19,8 +19,8 @@ export function useCommerce() {
         },
         body: JSON.stringify({
           "grant_type": "client_credentials",
-          "client_id": "mOvv1ULcTmNBqSoQEbxzL8h7Ss7G2c9FI7gXzbx4zvg",
-          "scope": "market:id:bgOEQhDVoZ"
+          "client_id": process.env.COMMERCE_LAYER_CLIENT_ID,
+          "scope": process.env.COMMERCE_LAYER_SCOPE
         }),
       });
       const authJson = await authResponse.json();
