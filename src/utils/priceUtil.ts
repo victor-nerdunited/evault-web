@@ -33,12 +33,12 @@ export const getPrice = (prices: MineralPrices, name: string, description: strin
 }
 
 export const getPrices = async (forceRefresh: boolean = false): Promise<MineralPrices> => {
-  // if (localStorage.getItem('is_test_mode') === "true") {
-  //   return {
-  //     goldPrice: 0.005,
-  //     silverPrice: 0.001,
-  //   };
-  // }
+  if (localStorage.getItem('is_test_mode') === "true") {
+    return {
+      goldPrice: 0.005,
+      silverPrice: 0.001,
+    };
+  }
 
   const cacheKey = "goldprice";
   const cacheEntry = localStorage.getItem(cacheKey);
