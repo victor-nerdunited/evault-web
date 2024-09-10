@@ -13,24 +13,26 @@ import { useAccountEffect } from "wagmi";
 import { H } from 'highlight.run';
 import mixpanel from "mixpanel-browser";
  
-// Near entry of your product, init Mixpanel
-mixpanel.init("83224f6c6e1f05876fb8225950293d0e", {
-  debug: true,
-  track_pageview: true,
-  persistence: "localStorage",
-});
+if (process.env.NODE_ENV === 'production') {
+  // Near entry of your product, init Mixpanel
+  mixpanel.init("83224f6c6e1f05876fb8225950293d0e", {
+    debug: true,
+    track_pageview: true,
+    persistence: "localStorage",
+  });
 
-H.init('lgxpvkpd', {
-	serviceName: "frontend-app",
-	tracingOrigins: true,
-	networkRecording: {
-		enabled: true,
-		recordHeadersAndBody: true,
-		urlBlocklist: [
-			// insert full or partial urls that you don't want to record here
-		],
-	},
-});
+  H.init('lgxpvkpd', {
+    serviceName: "frontend-app",
+    tracingOrigins: true,
+    networkRecording: {
+      enabled: true,
+      recordHeadersAndBody: true,
+      urlBlocklist: [
+        // insert full or partial urls that you don't want to record here
+      ],
+    },
+  });
+}
 
 export interface MainNav2LoggedProps {}
 
@@ -42,9 +44,9 @@ const MainNav2Logged: FC<MainNav2LoggedProps> = () => {
   useAccountEffect({
     onConnect: async (data) => {
       H.identify(data.address);
+      mixpanel.identify(data.address);
     }
   });
-  
 
   const renderMagnifyingGlassIcon = () => {
     return (
