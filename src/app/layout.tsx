@@ -17,19 +17,6 @@ import { CheckoutProvider } from "@/lib/CheckoutProvider";
 // } from "@chakra-ui/react";
 //import { ChakraProvider } from "@chakra-ui/provider";
 import { PriceWarning } from "@/components/PriceWarning";
-import { H } from 'highlight.run';
-
-H.init('lgxpvkpd', {
-	serviceName: "frontend-app",
-	tracingOrigins: true,
-	networkRecording: {
-		enabled: true,
-		recordHeadersAndBody: true,
-		urlBlocklist: [
-			// insert full or partial urls that you don't want to record here
-		],
-	},
-});
 
 const poppins = Poppins({
   subsets: ["latin"],

@@ -10,7 +10,19 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import { ConnectKitButton } from "connectkit";
 import { useAccountEffect } from "wagmi";
-import { H } from "highlight.run";
+import { H } from 'highlight.run';
+
+H.init('lgxpvkpd', {
+	serviceName: "frontend-app",
+	tracingOrigins: true,
+	networkRecording: {
+		enabled: true,
+		recordHeadersAndBody: true,
+		urlBlocklist: [
+			// insert full or partial urls that you don't want to record here
+		],
+	},
+});
 
 export interface MainNav2LoggedProps {}
 
