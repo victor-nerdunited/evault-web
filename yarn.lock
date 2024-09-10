@@ -544,6 +544,11 @@
   resolved "https://registry.yarnpkg.com/@heroicons/react/-/react-2.1.5.tgz#1e13f34976cc542deae92353c01c8b3d7942e9ba"
   integrity sha512-FuzFN+BsHa+7OxbvAERtgBTNeZpUjgM/MIizfVkSCL2/edriN0Hx/DWRCR//aPYwO5QX/YlgLGXk+E3PcfZwjA==
 
+"@highlight-run/react@^5.0.3":
+  version "5.0.3"
+  resolved "https://registry.yarnpkg.com/@highlight-run/react/-/react-5.0.3.tgz#5151237653089b4769988f9fbab35268456ec00f"
+  integrity sha512-6bW8Z6FpZXsK+mQ5yXGZZf+6T72PILK4QgYRbcyxOJdIeDdIO/WPCp4Q4fG0q1r8b4Z0OHKph26CxxNrpoGteA==
+
 "@humanwhocodes/config-array@^0.11.14":
   version "0.11.14"
   resolved "https://registry.yarnpkg.com/@humanwhocodes/config-array/-/config-array-0.11.14.tgz#d78e481a039f7566ecc9660b4ea7fe6b1fec442b"
@@ -4311,6 +4316,11 @@ hey-listen@^1.0.8:
   version "1.0.8"
   resolved "https://registry.yarnpkg.com/hey-listen/-/hey-listen-1.0.8.tgz#8e59561ff724908de1aa924ed6ecc84a56a9aa68"
   integrity sha512-COpmrF2NOg4TBWUJ5UVyaCU2A88wEMkUPK4hNqyCkqHbxT92BbvfjoSozkAIIm6XhicGlJHhFdullInrdhwU8Q==
+
+highlight.run@^9.3.3:
+  version "9.3.3"
+  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-9.3.3.tgz#a8ca5b2e0217e3c8e0df2572dac9ba6847351d3d"
+  integrity sha512-s9/Ckp0gN0ZHoBzcJNi5zN9jC7qS/KBXLMhMePxFWx9Z8ZBwvKp4ODkAzusLWgoSL+C4TuND3UTMFL5t7+f9eA==
 
 hmac-drbg@^1.0.1:
   version "1.0.1"

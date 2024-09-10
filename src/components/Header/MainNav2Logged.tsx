@@ -9,6 +9,8 @@ import CartDropdown from "./CartDropdown";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import { ConnectKitButton } from "connectkit";
+import { useAccountEffect } from "wagmi";
+import { H } from "highlight.run";
 
 export interface MainNav2LoggedProps {}
 
@@ -16,6 +18,13 @@ const MainNav2Logged: FC<MainNav2LoggedProps> = () => {
   const inputRef = createRef<HTMLInputElement>();
   const [showSearchForm, setShowSearchForm] = useState(false);
   const router = useRouter();
+
+  useAccountEffect({
+    onConnect: async (data) => {
+      H.identify(data.address);
+    }
+  });
+  
 
   const renderMagnifyingGlassIcon = () => {
     return (
