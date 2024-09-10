@@ -11,6 +11,14 @@ import { useRouter } from "next/navigation";
 import { ConnectKitButton } from "connectkit";
 import { useAccountEffect } from "wagmi";
 import { H } from 'highlight.run';
+import mixpanel from "mixpanel-browser";
+ 
+// Near entry of your product, init Mixpanel
+mixpanel.init("83224f6c6e1f05876fb8225950293d0e", {
+  debug: true,
+  track_pageview: true,
+  persistence: "localStorage",
+});
 
 H.init('lgxpvkpd', {
 	serviceName: "frontend-app",
