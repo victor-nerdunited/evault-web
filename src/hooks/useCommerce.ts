@@ -21,7 +21,7 @@ export function useCommerce() {
           "grant_type": "client_credentials",
           "client_id": process.env.NEXT_PUBLIC_COMMERCE_LAYER_CLIENT_ID,
           "scope": process.env.NEXT_PUBLIC_COMMERCE_LAYER_SCOPE
-        }),
+        })
       });
       const authJson = await authResponse.json();
       setCommerceLayer(CommerceLayer({
