@@ -31,6 +31,7 @@ import { getPrice, getPrices } from "@/utils/priceUtil";
 import { getTokenPrice } from "@/utils/tokenPrice";
 import { useTokenPrice } from "@/hooks/useTokenprice";
 import { usePrices } from "@/hooks/usePrices";
+import { isMobile } from "react-device-detect";
 
 export interface ProductCardProps {
   className?: string;
@@ -82,6 +83,8 @@ const ProductCard: FC<ProductCardProps> = ({
   }, [tokenPrice]);
 
   const notifyAddTocart = async () => {
+    if (isMobile) return;
+
     setUpdatingCart(true);
     try {
       let order = cart;
@@ -233,7 +236,7 @@ const ProductCard: FC<ProductCardProps> = ({
     return (
       <div className="absolute bottom-0 group-hover:bottom-4 inset-x-1 flex justify-center opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
         <ButtonPrimary
-          disabled={updatingCart}
+          disabled={updatingCart || isMobile}
           className="shadow-lg"
           fontSize="text-xs"
           sizeClass="py-2 px-4"
