@@ -30,13 +30,7 @@ const config = createConfig(
   }),
 );
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      structuralSharing: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
   return (
