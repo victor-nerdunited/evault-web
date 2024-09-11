@@ -8,10 +8,11 @@ import Navigation from "@/shared/Navigation/Navigation";
 import CartDropdown from "./CartDropdown";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
-import { ConnectKitButton } from "connectkit";
+// import { ConnectKitButton } from "connectkit";
 import { useAccountEffect } from "wagmi";
 import { H } from 'highlight.run';
 import mixpanel from "mixpanel-browser";
+import ConnectKitButton from "@/lib/web3/ConnectKitButton";
  
 if (process.env.NODE_ENV === 'production') {
   // Near entry of your product, init Mixpanel

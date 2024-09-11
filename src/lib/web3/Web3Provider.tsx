@@ -1,43 +1,52 @@
 "use client";
-import { WagmiProvider, createConfig, http } from "wagmi";
-import { mainnet } from "wagmi/chains";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ConnectKitProvider, getDefaultConfig } from "connectkit";
-import { structuralSharing } from "wagmi/query";
+import { createWeb3Modal } from '@web3modal/wagmi/react'
+import { defaultWagmiConfig } from '@web3modal/wagmi/react/config'
 
-const config = createConfig(
-  getDefaultConfig({
-    // Your dApps chains
-    chains: [mainnet],
-    transports: {
-      // RPC URL for each chain
-      [mainnet.id]: http(
-        //`https://eth-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_ID}`,
-        "https://cloudflare-eth.com"
-      ),
+import { WagmiProvider } from 'wagmi'
+import { mainnet } from 'wagmi/chains'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ELMT_TOKEN_ADDRESS } from './constants';
+
+// 0. Setup queryClient
+const queryClient = new QueryClient()
+
+// 1. Get projectId from https://cloud.walletconnect.com
+const projectId = '9ecb3ec31f707e04be21e1174316fb01'
+
+// 2. Create wagmiConfig
+const metadata = {
+  name: 'EVault',
+  description: 'Gold, silver, minerals digital exchange',
+  url: 'https://4546-76-108-144-248.ngrok-free.app', // origin must match your domain & subdomain
+  icons: ['https://elmt.store/logo.png']
+}
+
+const chains = [mainnet] as const
+const config = defaultWagmiConfig({
+  chains,
+  projectId,
+  metadata,
+})
+
+// 3. Create modal
+createWeb3Modal({
+  metadata,
+  wagmiConfig: config,
+  projectId,
+  enableAnalytics: true, // Optional - defaults to your Cloud configuration
+  enableOnramp: false,
+  tokens: {
+    1: {
+      address: ELMT_TOKEN_ADDRESS,
+      image: "https://s2.coinmarketcap.com/static/img/coins/64x64/28368.png",
     },
+  },
+});
 
-    // Required API Keys
-    walletConnectProjectId: "9ecb3ec31f707e04be21e1174316fb01", // process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
-
-    // Required App Info
-    appName: "eVault",
-
-    // Optional App Info
-    appDescription: "Gold, silver, minerals digital exchange",
-    appUrl: "https://elmt.store", // your app's url
-    appIcon: "https://elmt.store/logo.png", // your app's icon, no bigger than 1024x1024px (max. 1MB)
-  }),
-);
-
-const queryClient = new QueryClient();
-
-export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
+export function Web3Provider({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <ConnectKitProvider>{children}</ConnectKitProvider>
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </WagmiProvider>
-  );
-};
+  )
+}

@@ -29,6 +29,7 @@ import { useRouter } from "next/navigation";
 import { useElmtBalance } from "@/hooks/useElmtBalance";
 import { useLogger } from "@/utils/logger";
 import { useEstimateGasFee } from "@/hooks/useEstimateGasFee";
+import { simulateContract } from "viem/actions";
 
 
 const CheckoutPage = () => {
@@ -51,9 +52,9 @@ const CheckoutPage = () => {
     error: transactionError, 
     isPending: transactionPending, 
     status: transactionStatus, 
-    writeContract 
+    writeContract,
   } = useWriteContract();
-
+  
   const config = useConfig();
   const token = useBalance({ address: account?.address, token: ELMT_TOKEN_ADDRESS });
   const { prices, refreshPrices } = usePrices();
@@ -103,8 +104,20 @@ const CheckoutPage = () => {
     return account?.address && contactInfo && shippingAddress && (elmtBalance >= subtotal || isDebug);
   }, [account?.address, contactInfo, shippingAddress, subtotal, elmtBalance, isDebug]);
 
-  const sendToken = (to: string, nativeAmount: bigint) => {
+  const sendToken = async(to: string, nativeAmount: bigint) => {
     if (!token.data) throw new Error("Token data not found");
+
+    const simulationResults = await simulateContract(config, {
+      abi: ELMT_TOKEN_ABI,
+      address: ELMT_TOKEN_ADDRESS,
+      functionName: 'transfer',
+      args: [
+        to,
+        nativeAmount,
+      ],
+      account: account.address,
+    });
+    logger.log("[sendToken] simulationResults", simulationResults);
 
     writeContract({ 
         abi: ELMT_TOKEN_ABI,
