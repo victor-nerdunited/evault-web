@@ -13,11 +13,18 @@ const queryClient = new QueryClient()
 // 1. Get projectId from https://cloud.walletconnect.com
 const projectId = '9ecb3ec31f707e04be21e1174316fb01'
 
+let url = 'https://elmt.store';
+if (process.env.NEXT_PUBLIC_DEPLOY_STAGE === 'staging') {
+  url = 'https://stage.elmt.store';
+} else if (process.env.NEXT_PUBLIC_DEPLOY_STAGE === 'local') {
+  url = 'http://localhost:3000';
+}
+
 // 2. Create wagmiConfig
 const metadata = {
   name: 'EVault',
   description: 'Gold, silver, minerals digital exchange',
-  url: 'https://4546-76-108-144-248.ngrok-free.app', // origin must match your domain & subdomain
+  url, // origin must match your domain & subdomain
   icons: ['https://elmt.store/logo.png']
 }
 
