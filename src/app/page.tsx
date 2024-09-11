@@ -14,6 +14,7 @@ import { getPrices } from "@/utils/priceUtil";
 import { Bars } from "react-loader-spinner";
 import { PriceWarning } from "@/components/PriceWarning";
 import { MobileView } from "react-device-detect";
+import { isMobileCheckoutEnabled } from "@/utils/util";
 
 /* this is a copy of collection/page.tsx */
 const PageCollection = ({}) => {
@@ -38,18 +39,16 @@ const PageCollection = ({}) => {
 
   return (
     <div className={`nc-PageCollection`}>
-      <MobileView>
-        {/* <div className="container text-center py-10">
-          <h1>Please note, mobile ordering is currently unavailable.</h1>
-        </div> */}
-        <div className="alert warning">
-          <span className="alertClose">X</span>
-          <span className="alertText">
-            Please note, mobile ordering <br />is currently unavailable. <br />
-            Visit the website on your desktop to order.
-          </span>
-        </div>
-      </MobileView>
+      {!isMobileCheckoutEnabled ? 
+        <MobileView>
+          <div className="alert warning">
+            <div className="alertClose">X</div>
+            <div className="alertText">
+              Please note, mobile ordering <br />is currently unavailable. <br />
+              Visit the website on your desktop to order.
+            </div>
+          </div>
+        </MobileView> : null}
       <div className="container py-16 lg:pb-28 lg:pt-20 space-y-16 sm:space-y-20 lg:space-y-28">
         <div className="space-y-10 lg:space-y-14">
           {products ?
