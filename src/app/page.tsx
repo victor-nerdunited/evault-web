@@ -14,7 +14,7 @@ import { getPrices } from "@/utils/priceUtil";
 import { Bars } from "react-loader-spinner";
 import { PriceWarning } from "@/components/PriceWarning";
 import { MobileView } from "react-device-detect";
-import { isMobileCheckoutEnabled } from "@/utils/util";
+import { isCheckoutDisabled } from "@/utils/util";
 
 /* this is a copy of collection/page.tsx */
 const PageCollection = ({}) => {
@@ -39,7 +39,7 @@ const PageCollection = ({}) => {
 
   return (
     <div className={`nc-PageCollection`}>
-      {!isMobileCheckoutEnabled ? 
+      {isCheckoutDisabled ? 
         <MobileView>
           <div className="alert warning">
             <div className="alertClose">X</div>

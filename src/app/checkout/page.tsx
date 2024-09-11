@@ -107,7 +107,7 @@ const CheckoutPage = () => {
   const sendToken = async(to: string, nativeAmount: bigint) => {
     if (!token.data) throw new Error("Token data not found");
 
-    const simulationResults = await simulateContract(config, {
+    const simulationResults = await simulateContract(config.getClient(), {
       abi: ELMT_TOKEN_ABI,
       address: ELMT_TOKEN_ADDRESS,
       functionName: 'transfer',
@@ -118,17 +118,9 @@ const CheckoutPage = () => {
       account: account.address,
     });
     logger.log("[sendToken] simulationResults", simulationResults);
-
-    writeContract({ 
-        abi: ELMT_TOKEN_ABI,
-        address: ELMT_TOKEN_ADDRESS,
-        functionName: 'transfer',
-        args: [
-          to,
-          nativeAmount,
-        ],
-        account: account.address,
-    });
+    if (simulationResults.result) {
+      writeContract(simulationResults.request);
+    }
   }
 
   const ensurePrices = async () => {
