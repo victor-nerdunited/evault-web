@@ -12,7 +12,7 @@ export interface AlertProps {
   containerClassName?: string;
   type: AlertType;
   children?: React.ReactNode;
-  showClose: boolean;
+  showClose?: boolean;
 }
 
 export const Alert: React.FC<AlertProps> = ({
