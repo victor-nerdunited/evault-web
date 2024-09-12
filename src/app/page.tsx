@@ -57,7 +57,7 @@ const PageCollection = ({}) => {
       <div className="container py-16 lg:pb-28 lg:pt-20 space-y-16 sm:space-y-20 lg:space-y-28">
         <Alert type={AlertType.info}>
           All orders will include a FREE Element E-Vault Coin NFT. This digital token showcases 
-          your coin's distinct characteristics, such as material, diameter, weight, and provenance, 
+          your coin's distinct characteristics, such as material, diameter, weight, and series, 
           ensuring a secure digital identity. We’ll issue your new NFT directly to the wallet 
           associated with your payment.
         </Alert>
