@@ -1,3 +1,5 @@
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+
 export default function ConnectKitButton() {
-  return <w3m-button />
+  return <ConnectButton accountStatus={"address"} />;
 }

@@ -119,7 +119,7 @@ const MainNav2Logged: FC<MainNav2LoggedProps> = () => {
           {showSearchForm ? renderSearchForm() : <Navigation />}
         </div>
 
-        <div className="flex-1 flex items-center justify-end text-slate-700 dark:text-slate-100">
+        <div className="flex-2 flex items-center justify-end text-slate-700 dark:text-slate-100">
           {/* {!showSearchForm && (
             <button
               className="hidden lg:flex w-10 h-10 sm:w-12 sm:h-12 rounded-full text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none items-center justify-center"
