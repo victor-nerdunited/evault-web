@@ -489,6 +489,9 @@ const CheckoutPage = () => {
                 ? submittingTransaction ? "Submitting transaction, see your wallet" : "Placing order..." 
                 : "Place order"}
             </ButtonPrimary>
+            <div className="w-full text-center my-6">
+              * All sales are final. No refunds.
+            </div>
             {/* {account.address}<br />
             {elmtBalance}<br />
             {subtotal}<br /> */}

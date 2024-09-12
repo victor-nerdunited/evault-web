@@ -15,6 +15,7 @@ import { Bars } from "react-loader-spinner";
 import { PriceWarning } from "@/components/PriceWarning";
 import { MobileView } from "react-device-detect";
 import { isCheckoutDisabled } from "@/utils/util";
+import { Alert, AlertType } from "@/shared/Alert/Alert";
 
 /* this is a copy of collection/page.tsx */
 const PageCollection = ({}) => {
@@ -41,15 +42,25 @@ const PageCollection = ({}) => {
     <div className={`nc-PageCollection`}>
       {isCheckoutDisabled ? 
         <MobileView>
-          <div className="alert warning">
+          {/* <div className="alert warning">
             <div className="alertClose">X</div>
             <div className="alertText">
               Please note, mobile ordering <br />is currently unavailable. <br />
               Visit the website on your desktop to order.
             </div>
-          </div>
+          </div> */}
+          <Alert type={AlertType.warning}>
+            Please note, mobile ordering <br />is currently unavailable. <br />
+            Visit the website on your desktop to order.
+          </Alert>
         </MobileView> : null}
       <div className="container py-16 lg:pb-28 lg:pt-20 space-y-16 sm:space-y-20 lg:space-y-28">
+        <Alert type={AlertType.info}>
+          All orders will include a FREE Element E-Vault Coin NFT. This digital token showcases 
+          your coin's distinct characteristics, such as material, diameter, weight, and provenance, 
+          ensuring a secure digital identity. We’ll issue your new NFT directly to the wallet 
+          associated with your payment.
+        </Alert>
         <div className="space-y-10 lg:space-y-14">
           {products ?
           <main>

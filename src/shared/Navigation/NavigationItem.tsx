@@ -84,6 +84,7 @@ const NavigationItem: FC<NavigationItemProps> = ({ menuItem }) => {
       <li key={item.id} className={`${item.isNew ? "menuIsNew" : ""}`}>
         <Link
           className="font-normal text-slate-600 hover:text-black dark:text-slate-400 dark:hover:text-white "
+          target={item.targetBlank ? "_blank" : ""}
           href={{
             pathname: item.href || undefined,
           }}
@@ -218,6 +219,7 @@ const NavigationItem: FC<NavigationItemProps> = ({ menuItem }) => {
       <div className="h-20 flex-shrink-0 flex items-center">
         <Link
           className="inline-flex items-center text-sm lg:text-[15px] font-medium text-slate-700 dark:text-slate-300 py-2.5 px-4 xl:px-5 rounded-full hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          target={item.targetBlank ? "_blank" : ""}
           href={{
             pathname: item.href || undefined,
           }}
