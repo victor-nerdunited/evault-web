@@ -3,6 +3,7 @@ import facebook from "@/images/socials/facebook.svg";
 import twitter from "@/images/socials/twitter.svg";
 import telegram from "@/images/socials/telegram.svg";
 import youtube from "@/images/socials/youtube.svg";
+import linktree from "@/images/socials/linktree.svg";
 import Image from "next/image";
 
 export interface SocialsListProps {
@@ -11,10 +12,11 @@ export interface SocialsListProps {
 }
 
 const socialsDemo = [
-  { name: "Facebook", icon: facebook, href: "#" },
-  { name: "Twitter", icon: twitter, href: "#" },
-  { name: "Youtube", icon: youtube, href: "#" },
-  { name: "Telegram", icon: telegram, href: "#" },
+  { name: "Linktree", icon: linktree, href: "https://linktr.ee/elementunited" },
+  { name: "Facebook", icon: facebook, href: "https://www.facebook.com/elementunited1/" },
+  { name: "Twitter", icon: twitter, href: "https://twitter.com/GoElementUnited" },
+  { name: "Youtube", icon: youtube, href: "https://www.youtube.com/channel/UCZVJWx8qzon6pBKcHgTfgew" },
+  { name: "Telegram", icon: telegram, href: "https://t.me/ElementUnited" },
 ];
 
 const SocialsList: FC<SocialsListProps> = ({

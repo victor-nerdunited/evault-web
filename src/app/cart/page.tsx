@@ -183,11 +183,16 @@ const CartPage = () => {
 
   return (
     <div className="nc-CartPage">
-      <main className="container py-16 lg:pb-28 lg:pt-20 ">
-        <div className="mb-12 sm:mb-16">
+      <main className="container py-10 md:py-12 lg:pb-28">
+        <div className="mb-8 md:mb-10">
           <h2 className="block text-2xl sm:text-3xl lg:text-4xl font-semibold ">
             Shopping Cart
           </h2>
+          <div className="block mt-6 sm:mt-5 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-400">
+            <Link href={"/"} className="">
+              Back to products
+            </Link>
+          </div>
         </div>
 
         <hr className="border-slate-200 dark:border-slate-700 my-10 xl:my-12" />
@@ -236,6 +241,12 @@ const CartPage = () => {
               <ButtonPrimary href="/checkout" className="mt-8 w-full">
                 Checkout
               </ButtonPrimary>
+              <div className="w-full text-center mt-8">
+                <Link 
+                  style={{ textDecoration: "underline" }} 
+                  href={new URL(`https://app.uniswap.org/#/swap?inputCurrency=eth&outputCurrency=${ELMT_TOKEN_ADDRESS}`)} 
+                  target="_blank" rel="noopener noreferrer">Buy ELMT</Link>
+              </div>
               {/* <div className="mt-5 text-sm text-slate-500 dark:text-slate-400 flex items-center justify-center">
                 <p className="block relative pl-5">
                   <svg

@@ -5,7 +5,7 @@ import ButtonClose from "@/shared/ButtonClose/ButtonClose";
 import Logo from "@/shared/Logo/Logo";
 import { Disclosure } from "@/app/headlessui";
 import { NavItemType } from "./NavigationItem";
-import { NAVIGATION_DEMO_2 } from "@/data/navigation";
+import { NAVIGATION_ITEMS } from "@/data/navigation";
 import ButtonPrimary from "@/shared/Button/ButtonPrimary";
 import SocialsList from "@/shared/SocialsList/SocialsList";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
@@ -18,7 +18,7 @@ export interface NavMobileProps {
 }
 
 const NavMobile: React.FC<NavMobileProps> = ({
-  data = NAVIGATION_DEMO_2,
+  data = NAVIGATION_ITEMS,
   onClickClose,
 }) => {
   const _renderMenuChild = (
@@ -81,6 +81,7 @@ const NavMobile: React.FC<NavMobileProps> = ({
       >
         <Link
           className="flex w-full items-center py-2.5 px-4 font-medium uppercase tracking-wide text-sm hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+          target={item.targetBlank ? "_blank" : ""}
           href={{
             pathname: item.href || undefined,
           }}
@@ -168,8 +169,7 @@ const NavMobile: React.FC<NavMobileProps> = ({
         <Logo />
         <div className="flex flex-col mt-5 text-slate-600 dark:text-slate-300 text-sm">
           <span>
-            Discover the most outstanding articles on all topics of life. Write
-            your stories and share them
+            Join Element United to fight destructive mining practices all over the world.
           </span>
 
           <div className="flex justify-between items-center mt-4">
@@ -183,16 +183,16 @@ const NavMobile: React.FC<NavMobileProps> = ({
           <ButtonClose onClick={onClickClose} />
         </span>
 
-        <div className="mt-5">{renderSearchForm()}</div>
+        {/* <div className="mt-5">{renderSearchForm()}</div> */}
       </div>
       <ul className="flex flex-col py-6 px-2 space-y-1">
         {data.map(_renderItem)}
       </ul>
-      <div className="flex items-center justify-between py-6 px-5 space-x-2">
+      {/* <div className="flex items-center justify-between py-6 px-5 space-x-2">
         <ButtonPrimary href={"/"} className="!px-10">
           Buy this template
         </ButtonPrimary>
-      </div>
+      </div> */}
     </div>
   );
 };

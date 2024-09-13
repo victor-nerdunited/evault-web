@@ -1,3 +1,4 @@
+import { ELMT_TOKEN_ADDRESS } from "@/lib/web3/constants";
 import { NavItemType } from "@/shared/Navigation/NavigationItem";
 import ncNanoId from "@/utils/ncNanoId";
 
@@ -177,40 +178,42 @@ const OTHER_PAGE_CHILD: NavItemType[] = [
   },
 ];
 
-export const NAVIGATION_DEMO_2: NavItemType[] = [
+export const NAVIGATION_ITEMS: NavItemType[] = [
   {
     id: ncNanoId(),
-    href: "/collection",
-    name: "Men",
+    href: "https://elementunited.com",
+    name: "Element Home",
+    targetBlank: true,
   },
   {
     id: ncNanoId(),
-    href: "/collection-2",
-    name: "Women",
+    href: "https://app.elementunited.com",
+    name: "App",
+    targetBlank: true,
   },
   {
     id: ncNanoId(),
-    href: "/collection",
-    name: "Beauty",
-  },
-
-  {
-    id: ncNanoId(),
-    href: "/collection-2",
-    name: "Sport",
+    href: "https://support.elementunited.com/hc/en-us/sections/29040770721307-Basics",
+    name: "F.A.Q",
+    targetBlank: true,
   },
   {
     id: ncNanoId(),
-    href: "/collection",
-    name: "Templates",
-    type: "megaMenu",
-    children: MEGAMENU_TEMPLATES,
+    href: "https://support.elementunited.com/hc/en-us/requests/new",
+    name: "Support",
+    targetBlank: true,
   },
   {
     id: ncNanoId(),
-    href: "/search",
-    name: "Explore",
-    type: "dropdown",
-    children: OTHER_PAGE_CHILD,
+    href: `https://app.uniswap.org/#/swap?inputCurrency=eth&outputCurrency=${ELMT_TOKEN_ADDRESS}`,
+    name: "Buy ELMT",
+    targetBlank: true
   },
+  // {
+  //   id: ncNanoId(),
+  //   href: "/search",
+  //   name: "Explore",
+  //   type: "dropdown",
+  //   children: OTHER_PAGE_CHILD,
+  // },
 ];

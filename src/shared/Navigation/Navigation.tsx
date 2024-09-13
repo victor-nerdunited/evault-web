@@ -1,18 +1,13 @@
 import React from "react";
 import NavigationItem, { NavItemType } from "./NavigationItem";
-import { NAVIGATION_DEMO_2 } from "@/data/navigation";
+import { NAVIGATION_ITEMS } from "@/data/navigation";
 
 function Navigation() {
   const navItems: NavItemType[] = [{
     id: "1", 
     name: 'Home', 
     href: '/'
-  }, {
-    id: "2", 
-    name:"F.A.Q.", 
-    href: "https://support.elementunited.com/hc/en-us/sections/29040770721307-Basics",
-    targetBlank: true,
-  }];
+  }, ...NAVIGATION_ITEMS];
   return (
     // <ul className="nc-Navigation flex items-center">
     //   {NAVIGATION_DEMO_2.map((item) => (

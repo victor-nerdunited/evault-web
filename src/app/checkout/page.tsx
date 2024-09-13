@@ -70,10 +70,8 @@ const CheckoutPage = () => {
   const { gasCost } = useEstimateGasFee(subtotal);
 
   //const fromToken = '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'; // USDC
-  const fromToken = 'eth'; // ETH
-  const toToken = ELMT_TOKEN_ADDRESS;
   //const swapUrl = `https://portfolio.metamask.io/swap?fromAddress=${fromToken}&toAddress=${toToken}`;
-  const swapUrl = `https://app.uniswap.org/#/swap?inputCurrency=${fromToken}&outputCurrency=${toToken}&exactAmount=${subtotal}&exactField=output`;
+  const swapUrl = `https://app.uniswap.org/#/swap?inputCurrency=eth&outputCurrency=${ELMT_TOKEN_ADDRESS}&exactAmount=${subtotal}&exactField=output`;
 
   useEffect(() => {
     if (!cart) return;
@@ -410,22 +408,22 @@ const CheckoutPage = () => {
 
   return (
     <div className="nc-CheckoutPage">
-      <main className="container py-16 lg:pb-28 lg:pt-20 ">
-        <div className="mb-16">
+      <main className="container py-10 md:py-12 lg:pb-28">
+        <div className="mb-8 md:mb-10">
           <h2 className="block text-2xl sm:text-3xl lg:text-4xl font-semibold ">
             Checkout
           </h2>
-          {/* <div className="block mt-3 sm:mt-5 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-400">
+          <div className="block mt-6 sm:mt-5 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-400">
             <Link href={"/"} className="">
-              Homepage
+              Back to products
             </Link>
-            <span className="text-xs mx-1 sm:mx-1.5">/</span>
+            {/* <span className="text-xs mx-1 sm:mx-1.5">/</span>
             <Link href={"/collection-2"} className="">
               Clothing Categories
             </Link>
             <span className="text-xs mx-1 sm:mx-1.5">/</span>
-            <span className="underline">Checkout</span>
-          </div> */}
+            <span className="underline">Checkout</span> */}
+          </div>
         </div>
 
         <div className="flex flex-col lg:flex-row">
@@ -489,7 +487,14 @@ const CheckoutPage = () => {
                 ? submittingTransaction ? "Submitting transaction, see your wallet" : "Placing order..." 
                 : "Place order"}
             </ButtonPrimary>
-            <div className="w-full text-center my-6">
+            <div className="w-full text-center mt-8">
+              Need more ELMT?&nbsp;
+              <Link 
+                style={{ textDecoration: "underline" }} 
+                href={new URL(`https://app.uniswap.org/#/swap?inputCurrency=eth&outputCurrency=${ELMT_TOKEN_ADDRESS}`)} 
+                target="_blank" rel="noopener noreferrer">Buy Here</Link>
+            </div>
+            <div className="w-full text-center mt-8 text-sm">
               * All sales are final. No refunds.
             </div>
             {/* {account.address}<br />
@@ -545,12 +550,12 @@ const CheckoutPage = () => {
                   Shipping
                 </a>
                 {` `} infomation */}
-                You don't have enough ELMT to place this order.
+                {/* You don't have enough ELMT to place this order.
                 <div>
                   To obtain more ELMT, please swap some tokens 
                   using <Link style={{ textDecoration: "underline" }} href={new URL(swapUrl)} target="_blank" rel="noopener noreferrer">Uniswap</Link>&nbsp;
                   or your favorite exchange.
-                </div>
+                </div> */}
               </p>
             </div>
           </div>
