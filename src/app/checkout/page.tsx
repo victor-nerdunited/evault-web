@@ -495,7 +495,8 @@ const CheckoutPage = () => {
                 target="_blank" rel="noopener noreferrer">Buy Here</Link>
             </div>
             <div className="w-full text-center mt-8 text-sm">
-              * All sales are final. No refunds.
+              * All sales are final. No refunds. By placing this order you agree to the &nbsp;
+              <a style={{textDecoration: "underline"}} href="/terms.html" target="_blank">Terms & Conditions</a>
             </div>
             {/* {account.address}<br />
             {elmtBalance}<br />
