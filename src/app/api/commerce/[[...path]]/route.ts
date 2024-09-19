@@ -1,5 +1,5 @@
 
-const wooCommerceUrl = 'https://whitesmoke-cassowary-484409.hostingersite.com/wp-json/wc/v3';
+const wooCommerceUrl = process.env.WOOCOMMERCE_URL;
 export async function GET(request: Request, { params }: { params: { path: string[] }}): Promise<Response> {
   console.log('[api/commerce/get]', request.url)
   return await sendRequest("GET", request, params.path.join("/"));
@@ -33,7 +33,7 @@ const sendRequest = async (method: "GET" | "POST" | "PUT", request: Request, pat
     method: method,
     body: JSON.stringify(body),
     headers: {
-      "Authorization": "Basic " + Buffer.from("ck_c93743ca4c70dcb848662f4fc3824efed6bba252:cs_b8744091dec07c58e86aefb8c58fcfd1ec87bffc").toString("base64"),
+      "Authorization": "Basic " + Buffer.from(`${process.env.WOOCOMMERCE_KEY}:${process.env.WOOCOMMERCE_SECRET}`).toString("base64"),
       "Content-Type": "application/json",
     }
   });
