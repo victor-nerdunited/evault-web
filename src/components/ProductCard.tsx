@@ -1,6 +1,6 @@
 "use client";
 
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useMemo, useState } from "react";
 import LikeButton from "./LikeButton";
 import Prices from "./Prices";
 import { ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
@@ -18,24 +18,17 @@ import Image from "next/image";
 import Link from "next/link";
 import NcImage from "@/shared/NcImage/NcImage";
 import { useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
-import {
-  LineItem,
-  LineItemCreate,
-  LineItemUpdate,
-  Order,
-  OrderCreate,
-  Sku,
-} from "@commercelayer/sdk";
 import { useCommerce } from "@/hooks/useCommerce";
 import { getPrice, getPrices } from "@/utils/priceUtil";
 import { getTokenPrice } from "@/utils/tokenPrice";
 import { useTokenPrice } from "@/hooks/useTokenprice";
 import { usePrices } from "@/hooks/usePrices";
 import { isCheckoutDisabled } from "@/utils/util";
+import { LineItem, MetaDatum, Order, Product } from "@/hooks/types/commerce";
 
 export interface ProductCardProps {
   className?: string;
-  data: Sku;
+  data: Product;
   isLiked?: boolean;
 }
 
@@ -49,19 +42,21 @@ const ProductCard: FC<ProductCardProps> = ({
   const {
     description,
     id,
-    image_url,
-    metadata,
+    images,
+    attributes,
     name,
     // rating,
     // numberOfReviews,
     // sizes,
-    code,
+    sku,
   } = data;
+  const image_url = images[0].src;
+  const maxPurchaseQuantity = parseInt(attributes.find(x => x.name === "max_purchase_quantity")?.options[0] ?? "");
 
   const [variantActive, setVariantActive] = useState(0);
   const [showModalQuickView, setShowModalQuickView] = useState(false);
   const router = useRouter();
-  const { cart } = useCheckout();
+  const { cart, createOrder, updateOrder } = useCheckout();
   const { dispatchCart } = useCheckoutDispatch();
   const [price, setPrice] = useState<number>(0);
   const [updatingCart, setUpdatingCart] = useState<boolean>(false);
@@ -73,8 +68,7 @@ const ProductCard: FC<ProductCardProps> = ({
       const price = await getPrice(
         prices,
         name,
-        description ?? "",
-        code ?? "",
+        sku,
         tokenPrice
       );
       setPrice(price);
@@ -82,47 +76,52 @@ const ProductCard: FC<ProductCardProps> = ({
     fetchPrices();
   }, [tokenPrice]);
 
+  const maxQtyReached = useMemo(() => {
+    if (!cart) return false;
+
+    const lineItem = cart.line_items!.find(x => x.sku === data.sku);
+    return lineItem && lineItem.quantity >= maxPurchaseQuantity;
+  }, [data, cart]);
+
   const notifyAddTocart = async () => {
     if (isCheckoutDisabled) return;
 
     setUpdatingCart(true);
     try {
-      let order = cart;
-      if (!order) {
-        order = await commerceLayer.orders.create({
-          guest: true,
-        } as OrderCreate);
-      }
-      const lineItem = order.line_items?.find(
-        (li) => li.sku_code === data.code
-      );
-      const maxPurchaseQuantity = parseInt(lineItem?.sku?.metadata?.max_purchase_quantity);
-      if (lineItem && !isNaN(maxPurchaseQuantity) && maxPurchaseQuantity <= lineItem.quantity) return;
-
-      if (lineItem) {
-        const lineItemUpdate: LineItemUpdate = {
-          id: lineItem.id,
-          quantity: lineItem.quantity + 1,
-          metadata: {
-            price: price,
-          },
-        };
-        await commerceLayer.line_items.update(lineItemUpdate);
+      const orderUpdate: Partial<Order> = {
+        line_items: [],
+        meta_data: [
+          { key: "token_price", value: tokenPrice },
+          { key: "gold_price", value: prices.goldPrice },
+          { key: "silver_price", value: prices.silverPrice }
+        ]
+      };
+      if (!cart) {
+        const result = await createOrder();
+        orderUpdate.id = result.id;
       } else {
-        const lineItemCreate: LineItemCreate = {
-          item: data,
-          quantity: 1,
-          order,
-          metadata: {
-            price: price,
-          },
-        };
-        await commerceLayer.line_items.create(lineItemCreate);
+        orderUpdate.id = cart.id;
+        orderUpdate.line_items = cart.line_items;
       }
-      order = await commerceLayer.orders.retrieve(order.id, {
-        include: ["line_items", "line_items.sku"],
-      });
-      dispatchCart(order as unknown as Order);
+
+      const lineItem = orderUpdate.line_items!.find(x => x.sku === data.sku);
+      if (lineItem) {
+        // check max quantity able to add
+        if (!isNaN(maxPurchaseQuantity) && maxPurchaseQuantity <= lineItem.quantity) return;
+
+        lineItem.quantity++;
+      } else {
+        const newLineItem: Partial<LineItem> = {
+          product_id: id,
+          quantity: 1,
+          meta_data: [
+            { key: "price", value: price.toString() } as MetaDatum,
+            { key: "max_purchase_quantity", value: maxPurchaseQuantity.toString() } as MetaDatum
+          ]
+        }
+        orderUpdate.line_items!.push(newLineItem as LineItem);
+      }
+      await updateOrder(orderUpdate);
     } catch (error) {
       console.error("[ProductCard] error", error);
     } finally {
@@ -290,7 +289,10 @@ const ProductCard: FC<ProductCardProps> = ({
             </h2>
             <div className={`text-sm text-slate-500 dark:text-slate-400 mt-1 `}>
               <div dangerouslySetInnerHTML={{ __html: description ?? "" }} />
-              <div className="text-xs text-slate-500 dark:text-slate-400 mt-3">Limit {metadata?.max_purchase_quantity} per customer</div>
+              {maxPurchaseQuantity 
+                ? <div className="text-xs text-slate-500 dark:text-slate-400 mt-3">Limit {maxPurchaseQuantity} per customer</div>
+                : null
+              }
             </div>
           </div>
 
@@ -303,7 +305,7 @@ const ProductCard: FC<ProductCardProps> = ({
               </span>
             </div> */}
             <ButtonPrimary
-              disabled={updatingCart}
+              disabled={updatingCart || maxQtyReached}
               loading={updatingCart}
               className="shadow-lg"
               fontSize="text-xs"

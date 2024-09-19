@@ -9,10 +9,10 @@ import { Suspense, useEffect, useState } from "react";
 
 const OrderConfirmation = async () => {
   const searchParams = useSearchParams();
-  const { clearCart } = useCheckout();
+  const { clearOrder } = useCheckout();
 
   useEffect(() => {
-    clearCart();
+    clearOrder();
   }, []);
 
   return (

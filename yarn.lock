@@ -43,11 +43,6 @@
     preact "^10.16.0"
     sha.js "^2.4.11"
 
-"@commercelayer/sdk@^6.14.1":
-  version "6.14.1"
-  resolved "https://registry.yarnpkg.com/@commercelayer/sdk/-/sdk-6.14.1.tgz#8375faf386593d65a4591e7585460d03fc0241e1"
-  integrity sha512-iByH/4fM2++s9urlxQJWk8mtNmLzWUTtpflA+54uTPJgFRRU+UlS5Q4n0QwZEfcEfg00HU0RNUo0s8o/jDEOBA==
-
 "@emnapi/runtime@^1.2.0":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@emnapi/runtime/-/runtime-1.2.0.tgz#71d018546c3a91f3b51106530edbc056b9f2f2e3"

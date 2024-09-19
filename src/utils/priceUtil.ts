@@ -10,20 +10,20 @@ export interface MineralPrices {
   silverPrice: number;
 }
 
-export const isGold = (name: string, description: string, code: string) => {
-  return /gold/i.test(name ?? "") || /gold/i.test(description ?? "") || /gold/i.test(code ?? "");
+export const isGold = (name: string, sku: string) => {
+  return /gold/i.test(name ?? "") || /gold/i.test(sku ?? "");
 }
 
-export const isSilver = (name: string, description: string, code: string) => {
-  return /silver/i.test(name ?? "") || /silver/i.test(description ?? "") || /silver/i.test(code ?? "");
+export const isSilver = (name: string, sku: string) => {
+  return /silver/i.test(name ?? "") || /silver/i.test(sku ?? "");
 }
 
-export const getPrice = (prices: MineralPrices, name: string, description: string, code: string, tokenPrice: number) => {
+export const getPrice = (prices: MineralPrices, name: string, sku: string, tokenPrice: number) => {
   logger.log("[getPrice] prices", prices, tokenPrice);
   let price = 0;
-  if (isGold(name, description, code)) {
+  if (isGold(name, sku)) {
     price = Number(prices.goldPrice);
-  } else if (isSilver(name, description, code)) {
+  } else if (isSilver(name, sku)) {
     price = Number(prices.silverPrice);
   }
 

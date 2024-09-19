@@ -9,29 +9,30 @@ import ProductCard from "@/components/ProductCard";
 import { PRODUCTS } from "@/data/data";
 import TabFilters from "@/components/TabFilters";
 import { useCommerce } from "@/hooks/useCommerce";
-import { Sku } from "@commercelayer/sdk";
 import { getPrices } from "@/utils/priceUtil";
 import { Bars } from "react-loader-spinner";
 import { PriceWarning } from "@/components/PriceWarning";
 import { MobileView } from "react-device-detect";
 import { isCheckoutDisabled } from "@/utils/util";
 import { Alert, AlertType } from "@/shared/Alert/Alert";
+import { Product } from "@/hooks/types/commerce";
 
 /* this is a copy of collection/page.tsx */
 const PageCollection = ({}) => {
   const commerceLayer = useCommerce();
 
-  const [products, setProducts] = useState<Sku[] | null>(null);
+  const [products, setProducts] = useState<Product[] | null>(null);
 
   useEffect(() => {
     if (!commerceLayer) return;
 
     const fetchProducts = async () => {
-      const products = await commerceLayer?.skus.list({ include: ["prices"] });
+      //const products = await commerceLayer?.skus.list({ include: ["prices"] });
+      const products = await commerceLayer.getProducts();
       setProducts(products ?? []);
     };
     fetchProducts();
-  }, [commerceLayer]);
+  }, []);
 
   // pre-load prices
   useEffect(() => {

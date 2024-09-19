@@ -10,9 +10,10 @@ import {
   useCheckout,
   useCheckoutDispatch,
 } from "@/lib/CheckoutProvider";
-import { Customer, CustomerCreate, CustomerUpdate } from "@commercelayer/sdk";
-import { useCommerce } from "@/hooks/useCommerce";
+import { Order, useCommerce } from "@/hooks/useCommerce";
 import { useLogger } from "@/utils/logger";
+import { useTokenPrice } from "@/hooks/useTokenprice";
+import { usePrices } from "@/hooks/usePrices";
 
 interface Props {
   isActive: boolean;
@@ -22,9 +23,10 @@ interface Props {
 
 const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
   const logger = useLogger("contact-info");
-  const { contactInfo } = useCheckout();
+  const { cart, contactInfo, updateOrder } = useCheckout();
   const { dispatchContactInfo } = useCheckoutDispatch();
-  const commerceLayer = useCommerce();
+  const { tokenPrice } = useTokenPrice();
+  const { prices } = usePrices();
 
   const { handleSubmit, control, watch } = useForm<IContactInfo>({
     defaultValues: contactInfo ?? {
@@ -48,18 +50,22 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
 
   const addOrUpdateCustomer = async (contactInfo: IContactInfo) => {
     try {
-      const customerCreate: CustomerCreate = {
-        email: contactInfo.email,
-        metadata: {
-          //wallet_address: account.address,
-          full_name: contactInfo.firstName,
-          first_name: contactInfo.firstName.split(" ")[0],
-          last_name: contactInfo.firstName.split(" ")[1],
-          phone: contactInfo.phone,
-        },
-      };
+      if (!cart) return;
 
-      await commerceLayer!.customers.create(customerCreate);
+      const orderUpdate: Partial<Order> = {
+        id: cart.id,
+        billing: cart.billing,
+        meta_data: [
+          { key: "token_price", value: tokenPrice },
+          { key: "gold_price", value: prices.goldPrice },
+          { key: "silver_price", value: prices.silverPrice }
+        ]
+      }
+      orderUpdate.billing!.first_name = contactInfo.firstName;
+      orderUpdate.billing!.last_name = contactInfo.lastName;
+      orderUpdate.billing!.phone = contactInfo.phone;
+      orderUpdate.billing!.email = contactInfo.email;
+      await updateOrder(orderUpdate);
     } catch (error) {
       logger.error("Error creating customer", error);
     }

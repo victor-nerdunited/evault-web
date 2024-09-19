@@ -7,7 +7,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "cdn.chec.io",
+        hostname: "whitesmoke-cassowary-484409.hostingersite.com",
         port: "",
         pathname: "/**",
       },
