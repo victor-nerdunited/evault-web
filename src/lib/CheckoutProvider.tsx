@@ -141,17 +141,19 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (!commerceLayer) return;
     if (quantity > 3) return;
 
-    // const lineItemUpdate: LineItemUpdate = {
-    //   id: itemId,
-    //   quantity: quantity,
-    // };
-    // await commerceLayer.line_items.update(lineItemUpdate);
-    // const order = await commerceLayer.orders.retrieve(cart.id, {include: ["line_items", "line_items.sku"]});
-    const lineIndex = cart.line_items.findIndex(x => x.id === itemId);
+    const orderUpdate: Partial<Order> = {
+      id: cart.id,
+      line_items: cart.line_items.map(x => ({
+        id: x.id,
+        sku: x.sku,
+        quantity: x.quantity
+      })) as LineItem[]
+    };
+    const lineIndex = orderUpdate.line_items!.findIndex(x => x.id === itemId);
     if (lineIndex > -1) {
-      cart.line_items[lineIndex].quantity = quantity;
+      orderUpdate.line_items![lineIndex].quantity = quantity;
     }
-    const order = await commerceLayer.updateOrder(cart);
+    const order = await commerceLayer.updateOrder(orderUpdate);
     order && dispatchCart(order);
   };
 
