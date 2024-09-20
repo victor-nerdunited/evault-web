@@ -6,8 +6,16 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
+        // stage
         protocol: "https",
         hostname: "whitesmoke-cassowary-484409.hostingersite.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        // prod
+        protocol: "https",
+        hostname: "chocolate-scorpion-470541.hostingersite.com",
         port: "",
         pathname: "/**",
       },
