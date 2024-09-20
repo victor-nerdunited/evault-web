@@ -1,10 +1,15 @@
 "use client";
 
+import { Logger } from "loglevel";
 import { Order, Product } from "./types/commerce";
+import { useLogger } from "@/utils/logger";
 export type { Order, Product } from "./types/commerce";
+
 
 class CommerceApi {
   baseUrl: string = "/api/commerce";
+
+  constructor(private readonly logger: Logger){}
 
   async createOrder(): Promise<Order> {
     const response = await fetch(this.baseUrl + "/orders", { method: "POST", body: "{}" });
@@ -21,13 +26,19 @@ class CommerceApi {
     return response.json();
   }
 
-  async updateOrder(order: Partial<Order>): Promise<Order> {
+  async updateOrder(order: Partial<Order>): Promise<Order | null> {
     const response = await fetch(this.baseUrl + "/orders/" + order.id, { body: JSON.stringify(order), method: "PUT" });
-    return response.json();
+    if (response.ok) {
+      return response.json();
+    } else {
+      this.logger.error(response.statusText);
+      return null;
+    }
   }
 }
 
-export function useCommerce() {  
-  return new CommerceApi();
+export function useCommerce() {
+  const logger = useLogger("CommerceApi");
+  return new CommerceApi(logger);
 }
 

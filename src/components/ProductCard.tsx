@@ -101,7 +101,13 @@ const ProductCard: FC<ProductCardProps> = ({
         orderUpdate.id = result.id;
       } else {
         orderUpdate.id = cart.id;
-        orderUpdate.line_items = cart.line_items;
+        orderUpdate.line_items = cart.line_items.map(x => {
+          return {
+            id: x.id,
+            quantity: x.quantity,
+            sku: x.sku,
+          };
+        }) as LineItem[];
       }
 
       const lineItem = orderUpdate.line_items!.find(x => x.sku === data.sku);
