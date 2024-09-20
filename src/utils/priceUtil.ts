@@ -33,7 +33,7 @@ export const getPrice = (prices: MineralPrices, name: string, sku: string, token
 }
 
 export const getPrices = async (forceRefresh: boolean = false): Promise<MineralPrices> => {
-  if (localStorage.getItem('is_test_mode') === "true") {
+  if (["staging", "local"].includes(process.env.NEXT_PUBLIC_DEPLOY_STAGE ?? "production")) {
     return {
       goldPrice: 0.005,
       silverPrice: 0.001,
