@@ -81,14 +81,14 @@ const SectionSliderProductCard: FC<SectionSliderProductCardProps> = ({
           {heading || `New Arrivals`}
         </Heading>
         <div className="glide__track" data-glide-el="track">
-          <ul className="glide__slides">
+          {/* <ul className="glide__slides">
             {data.map((item, index) => (
               <li key={index} className={`glide__slide ${itemClassName}`}>
                 // todo: fix type
                 <ProductCard data={item as any} />
               </li>
             ))}
-          </ul>
+          </ul> */}
         </div>
       </div>
     </div>

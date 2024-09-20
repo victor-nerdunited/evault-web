@@ -11,13 +11,12 @@ import ContactInfo from "./ContactInfo";
 import PaymentMethod from "./PaymentMethod";
 import Image from "next/image";
 import Link from "next/link";
-import { IShippingAddress, useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
+import { useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
 import ShippingAddress from "./ShippingAddress";
 import { useAccount, useAccountEffect, useBalance, useConfig, useSendTransaction, useWriteContract } from "wagmi";
 import { getTransactionReceipt, waitForTransactionReceipt } from "@wagmi/core";
 import { ELMT_TOKEN_ABI, ELMT_TOKEN_ADDRESS, ELMT_WALLET_ADDRESS } from "@/lib/web3/constants";
-import { AddressCreate, Customer, CustomerCreate, LineItem, LineItemUpdate, Order, OrderUpdate, QueryParamsList, ShipmentCreate, ShipmentUpdate, WireTransferCreate } from "@commercelayer/sdk";
-import { useCommerce } from "@/hooks/useCommerce";
+import { Order, useCommerce } from "@/hooks/useCommerce";
 import { getPrice, getPrices, isGold, isSilver } from "@/utils/priceUtil";
 import { usePrices } from "@/hooks/usePrices";
 import { useTokenPrice } from "@/hooks/useTokenprice";
@@ -30,6 +29,7 @@ import { useElmtBalance } from "@/hooks/useElmtBalance";
 import { useLogger } from "@/utils/logger";
 import { useEstimateGasFee } from "@/hooks/useEstimateGasFee";
 import { simulateContract } from "viem/actions";
+import { LineItem } from "@/hooks/types/commerce";
 
 
 const CheckoutPage = () => {
@@ -41,7 +41,7 @@ const CheckoutPage = () => {
   //const [contactInfo, setContactInfo] = useState<IContactFormInputs | null>(null);
   //const [shippingAddress, setShippingAddress] = useState<IShippingAddress | null>(null);
   // const [cart, setCart] = useState<Cart | null>(null);
-  const { cart, contactInfo, shippingAddress, removeItem, updateQuantity } = useCheckout()!;
+  const { cart, contactInfo, shippingAddress, removeItem, updateOrder, updateQuantity } = useCheckout()!;
   const { dispatchCart } = useCheckoutDispatch()!;
   const commerceLayer = useCommerce()!;
   //const [checkoutTokenId, setCheckoutTokenId] = useState<string | null>(null);
@@ -77,7 +77,7 @@ const CheckoutPage = () => {
     if (!cart) return;
 
     const _subtotal = cart.line_items?.reduce((acc, item) => {
-      const price = getPrice(prices!, item.name!, item.sku?.description ?? "", item.sku_code ?? "", tokenPrice);
+      const price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice);
       return acc + price * item.quantity;
     }, 0) ?? 0;
     setSubtotal(_subtotal);
@@ -137,8 +137,8 @@ const CheckoutPage = () => {
     if (tokenPrice < minTokenPrice || tokenPrice > maxTokenPrice) {
       tokenPriceChanged = true;
     }
-    const hasGoldItem = cart?.line_items?.some(item => isGold(item.name ?? "", item.sku?.description ?? "", item.sku_code ?? ""));
-    const hasSilverItem = cart?.line_items?.some(item => isSilver(item.name ?? "", item.sku?.description ?? "", item.sku_code ?? ""));
+    const hasGoldItem = cart?.line_items?.some(item => isGold(item.name ?? "", item.sku ?? ""));
+    const hasSilverItem = cart?.line_items?.some(item => isSilver(item.name ?? "", item.sku ?? ""));
     if (hasGoldItem) {
       itemPriceChanged ||= prices.goldPrice < minGoldPrice || prices.goldPrice > maxGoldPrice;
     }
@@ -205,66 +205,30 @@ const CheckoutPage = () => {
     try {
       setPlacingOrder(true);
 
-      const addPaymentInfo = async () => {
-        const wireTransferCreate: WireTransferCreate = {
-          order: cart
-        }
-        const wireTransfer = await commerceLayer.wire_transfers.create(wireTransferCreate);
-        logger.log("[checkout] wireTransfer", wireTransfer);
-
-        const paymentMethods = await commerceLayer.orders.available_payment_methods(cart.id);
-        logger.log("[checkout] paymentMethods", paymentMethods);
-
-        const orderUpdate: OrderUpdate = {
-          id: cart.id,
-          payment_source: wireTransfer,
-          payment_method: paymentMethods.first(),
-          metadata: {
-            wallet_address: account.address,
-            transaction_hash: transactionHash,
-            token_price: tokenPrice,
-            gold_price: prices?.goldPrice,
-            silver_price: prices?.silverPrice,
-            amount: subtotal,
-          }
-        };
-        const order = await commerceLayer?.orders.update(orderUpdate);
-        logger.log("[checkout] order", order);
+      const orderUpdate: Partial<Order & { set_paid: boolean }> = {
+        id: cart.id,
+        status: "on-hold",
+        payment_method: "ELMT",
+        set_paid: true,
+        transaction_id: transactionHash,
+        meta_data: [
+          ...cart.meta_data,
+          { key: "wallet_address", value: account.address },
+          { key: "transaction_hash", value: transactionHash },
+          { key: "token_price", value: tokenPrice },
+          { key: "gold_price", value: prices.goldPrice },
+          { key: "silver_price", value: prices.silverPrice },
+          { key: "amount", value: subtotal },
+        ]
       }
-      await addPaymentInfo();
-        
-      const orderUpdate = {
-        id: cart!.id,
-        _place: true,
-      };
-      const order = await commerceLayer?.orders.update(orderUpdate);
-      logger.log("[checkout] order", order);
-      await updateLineItemPrices();
-      router.push(`/order-confirmation?orderid=${order?.number}&total=${subtotal}&hash=${transactionHash}`);
+      await updateOrder(orderUpdate);
+      router.push(`/order-confirmation?orderid=${cart?.id}&total=${subtotal}&hash=${transactionHash}`);
     } catch (error) {
       logger.error("Error placing order", error);
 
     } finally {
       setPlacingOrder(false);
     }
-  }
-
-  const updateLineItemPrices = async () => {
-    if (!cart) return;
-    for(const item of cart.line_items ?? []) {
-      try {
-        const price = getPrice(prices, item.name ?? "", item.sku?.description ?? "", item.sku_code ?? "", tokenPrice);
-        const lineItemUpdate: LineItemUpdate = {
-          id: item.id,
-          metadata: {
-            price,
-          },
-        };
-        await commerceLayer.line_items.update(lineItemUpdate);
-      } catch (error) {
-        logger.error("Error updating line item price", error);
-      }
-    } 
   }
 
   useEffect(() => {
@@ -284,9 +248,10 @@ const CheckoutPage = () => {
 
   const renderProduct = (item: LineItem, index: number) => {
     //const price = item.unit_amount_float;
-    const price = getPrice(prices, item.name ?? "", item.sku?.description ?? "", item.sku_code ?? "", tokenPrice);
-    const { image_url, name } = item;
-    const quantityOptions = Array.from({ length: item.sku?.metadata?.max_purchase_quantity || 3 }, (_, i) => ({
+    const price = getPrice(prices, item.name ?? "", item.sku ?? "", tokenPrice);
+    const { image, name } = item;
+    const maxPurchaseQuantity = parseInt(item.meta_data.find(x => x.key === "max_purchase_quantity")?.value);
+    const quantityOptions = Array.from({ length: maxPurchaseQuantity || 3 }, (_, i) => ({
       value: i + 1,
       label: i + 1
     }));
@@ -295,7 +260,7 @@ const CheckoutPage = () => {
       <div key={index} className="relative flex py-7 first:pt-0 last:pb-0">
         <div className="relative h-36 w-24 sm:w-28 flex-shrink-0 overflow-hidden rounded-xl">
           <Image
-            src={image_url || ""}
+            src={image.src || ""}
             fill
             alt={name || ""}
             className="h-full w-full object-contain object-center"
@@ -340,7 +305,7 @@ const CheckoutPage = () => {
             <div className="hidden sm:block text-center relative">
               <NcInputNumber
                 className="relative z-10"
-                max={item.sku?.metadata?.max_purchase_quantity || 3}
+                max={maxPurchaseQuantity || 3}
                 defaultValue={item.quantity}
                 onChange={(value) => updateQuantity(item.id, value)}
               />
@@ -434,7 +399,7 @@ const CheckoutPage = () => {
           <div className="w-full lg:w-[36%] ">
             <h3 className="text-lg font-semibold">Order summary</h3>
             <div className="mt-8 divide-y divide-slate-200/70 dark:divide-slate-700 ">
-              {cart?.line_items?.filter(item => item.item_type === "skus").map(renderProduct)}
+              {cart?.line_items?.map(renderProduct)}
             </div>
 
             <div className="mt-10 pt-6 text-sm text-slate-500 border-t border-slate-200/70 dark:border-slate-700 dark:text-slate-400 divide-y divide-slate-200/70 dark:divide-slate-700/80">

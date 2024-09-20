@@ -9,7 +9,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCommerce, } from "@/hooks/useCommerce";
 import { useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
-import { LineItem, LineItemUpdate, Order } from "@commercelayer/sdk";
 import { getPrice } from "@/utils/priceUtil";
 import { usePrices } from "@/hooks/usePrices";
 import { useTokenPrice } from "@/hooks/useTokenprice";
@@ -21,6 +20,7 @@ import { useAccount, useBalance, useClient, useConfig, useEstimateFeesPerGas, us
 import * as ethers from "ethers";
 import { ELMT_TOKEN_ABI, ELMT_TOKEN_ADDRESS, ELMT_WALLET_ADDRESS } from "@/lib/web3/constants";
 import { useEstimateGasFee } from "@/hooks/useEstimateGasFee";
+import { LineItem } from "@/hooks/types/commerce";
 
 const CartPage = () => {
   const logger = useLogger("cart");
@@ -45,7 +45,7 @@ const CartPage = () => {
     if (!cart) return;
 
     const _subtotal = cart.line_items?.reduce((acc, item) => {
-      const price = getPrice(prices!, item.name!, item.sku?.description ?? "", item.sku_code ?? "", tokenPrice);
+      const price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice);
       logger.log("[cart] price", price);
       return acc + price * item.quantity;
     }, 0) ?? 0;
@@ -99,9 +99,10 @@ const CartPage = () => {
   };
 
   const renderProduct = (item: LineItem, index: number) => {
-    const price = getPrice(prices, item.name ?? "", item.sku?.description ?? "", item.sku_code ?? "" , tokenPrice);
-    const { image_url, name, quantity } = item;
-    const quantityOptions = Array.from({ length: item.sku?.metadata?.max_purchase_quantity || 3 }, (_, i) => ({
+    const price = getPrice(prices, item.name ?? "", item.sku ?? "" , tokenPrice);
+    const { image, name, quantity } = item;
+    const maxQuantity = parseInt(item.meta_data.find(x => x.key === "max_purchase_quantity")?.value.toString() ?? "");
+    const quantityOptions = Array.from({ length: maxQuantity || 3 }, (_, i) => ({
       value: i + 1,
       label: i + 1
     }));
@@ -114,7 +115,7 @@ const CartPage = () => {
         <div className="relative h-36 w-24 sm:w-32 flex-shrink-0 overflow-hidden rounded-xl">
           <Image
             fill
-            src={image_url || ""}
+            src={image.src || ""}
             alt={name || ""}
             sizes="300px"
             className="h-full w-full object-contain object-center"
@@ -151,7 +152,7 @@ const CartPage = () => {
               <div className="hidden sm:block text-center relative">
                 <NcInputNumber
                   className="relative z-10"
-                  max={item.sku?.metadata?.max_purchase_quantity || 3}
+                  max={maxQuantity || 3}
                   defaultValue={quantity}
                   onChange={(value) => updateQuantity(item.id, value)}
                 />
@@ -200,7 +201,7 @@ const CartPage = () => {
         <div className="flex flex-col lg:flex-row">
           <div className="w-full lg:w-[60%] xl:w-[55%] divide-y divide-slate-200 dark:divide-slate-700 ">
             {cart && cart.line_items?.length
-              ? cart?.line_items?.filter(item => item.item_type === "skus").map(renderProduct)
+              ? cart?.line_items.map(renderProduct)
               : <div>No items in cart</div>
             }
           </div>
@@ -308,8 +309,3 @@ const CartPage = () => {
 };
 
 export default CartPage;
-
-function dispatchCart(order: Order) {
-  throw new Error("Function not implemented.");
-}
-

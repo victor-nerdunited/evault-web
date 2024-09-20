@@ -2,19 +2,9 @@
 
 import { createContext, Dispatch, useContext, useEffect, useReducer, useState } from 'react';
 
-import { useCommerce } from '@/hooks/useCommerce';
-import { LineItemUpdate, Order } from '@commercelayer/sdk';
+import { Order, useCommerce } from '@/hooks/useCommerce';
 import { getCookie, removeCookie, setCookie } from 'typescript-cookie';
-
-// export interface ICart {
-//   timestamp: number;
-//   items: ICartItem[];
-// }
-
-// export interface ICartItem {
-//   id: string;
-//   quantity: number;
-// }
+import { LineItem } from '@/hooks/types/commerce';
 
 export interface IContactInfo {
   firstName: string;
@@ -43,9 +33,11 @@ interface CheckoutContextType {
   cart: Order | null;
   contactInfo: IContactInfo | null;
   shippingAddress: IShippingAddress | null;
-  removeItem: (itemId: string) => Promise<void>;
-  updateQuantity: (itemId: string, quantity: number) => Promise<void>;
-  clearCart: () => void;
+  clearOrder: () => void;
+  createOrder: () => Promise<Order>;
+  removeItem: (itemId: number) => Promise<void>;
+  updateOrder: (order: Partial<Order>) => Promise<void>;
+  updateQuantity: (itemId: number, quantity: number) => Promise<void>;
 }
 
 // enum CartActionType {
@@ -61,9 +53,11 @@ const CheckoutContext = createContext<CheckoutContextType>({
   cart: null,
   contactInfo: null,
   shippingAddress: null,
+  clearOrder: () => {},
+  createOrder: (): Promise<Order> => Promise.resolve({} as Order),
   removeItem: () => Promise.resolve(),
+  updateOrder: (order: Partial<Order>) => Promise.resolve(),
   updateQuantity: () => Promise.resolve(),
-  clearCart: () => {},
 });
 const CheckoutDispatchContext = createContext<{
   dispatchCart: Dispatch<Order>, 
@@ -93,39 +87,71 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (!commerceLayer) return;
     const orderId = getCookie('orderId');
     if (!orderId)  return;
+    if (/[a-zA-Z]+/.test(orderId)) {
+      removeCookie("orderId");
+      return;
+    }
 
     const fetchCart = async () => {
-      const cart = await commerceLayer.orders.retrieve(orderId, {include: ["line_items", "line_items.sku"]});
+      //const cart = await commerceLayer.orders.retrieve(orderId, {include: ["line_items", "line_items.sku"]});
+      const cart = await commerceLayer.getOrder(orderId);
       dispatchCart(cart);
     }
     fetchCart();
-  }, [commerceLayer]);
+  }, []);
 
-  const clearCart = (): void => {
+  const clearOrder = (): void => {
     if (!commerceLayer) return;
 
     removeCookie('orderId');
     dispatchCart(null as unknown as Order);
   }
 
-  const removeItem = async (itemId: string) => {
-    if (!commerceLayer) return;
+  const createOrder = async (): Promise<Order> => {
+    const order = await commerceLayer.createOrder();
+    dispatchCart(order);
+    return order;
+  }
 
-    await commerceLayer.line_items.delete(itemId);
-    const order = await commerceLayer.orders.retrieve(cart.id, {include: ["line_items", "line_items.sku"]});
+  const removeItem = async (itemId: number) => {
+    const orderUpdate = {
+      id: cart.id,
+      line_items: [] as Partial<LineItem>[]
+    };
+    const lineIndex = cart.line_items.findIndex(x => x.id === itemId);
+    if (lineIndex > -1) {
+      //orderUpdate.line_items![lineIndex].quantity = 0;
+      orderUpdate.line_items!.push({
+        id: cart.line_items[lineIndex].id,
+        quantity: 0
+      });
+    }
+    // await commerceLayer.line_items.delete(itemId);
+    // const order = await commerceLayer.orders.retrieve(cart.id, {include: ["line_items", "line_items.sku"]});
+    const order = await commerceLayer.updateOrder(orderUpdate as Partial<Order>);
     dispatchCart(order as unknown as Order);
   };
 
-  const updateQuantity = async (itemId: string, quantity: number) => {
+  const updateOrder = async(order: Partial<Order>): Promise<void> => {
+    const result = await commerceLayer.updateOrder(order);
+    dispatchCart(result);
+  }
+
+  const updateQuantity = async (itemId: number, quantity: number) => {
     if (!commerceLayer) return;
     if (quantity > 3) return;
 
-    const lineItemUpdate: LineItemUpdate = {
-      id: itemId,
-      quantity: quantity,
-    };
-    await commerceLayer.line_items.update(lineItemUpdate);
-    const order = await commerceLayer.orders.retrieve(cart.id, {include: ["line_items", "line_items.sku"]});
+    // const lineItemUpdate: LineItemUpdate = {
+    //   id: itemId,
+    //   quantity: quantity,
+    // };
+    // await commerceLayer.line_items.update(lineItemUpdate);
+    // const order = await commerceLayer.orders.retrieve(cart.id, {include: ["line_items", "line_items.sku"]});
+    const lineIndex = cart.line_items.findIndex(x => x.id === itemId);
+    if (lineIndex > -1) {
+      cart.line_items[lineIndex].quantity = quantity;
+    }
+    const order = await commerceLayer.updateOrder(cart);
     dispatchCart(order);
   };
 
@@ -133,9 +159,11 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     cart,
     contactInfo,
     shippingAddress,
+    clearOrder,
+    createOrder,
     removeItem,
+    updateOrder,
     updateQuantity,
-    clearCart
   }
 
   return (
