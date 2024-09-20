@@ -134,7 +134,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const updateOrder = async(order: Partial<Order>): Promise<void> => {
     const result = await commerceLayer.updateOrder(order);
-    dispatchCart(result);
+    result && dispatchCart(result);
   }
 
   const updateQuantity = async (itemId: number, quantity: number) => {
@@ -152,7 +152,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       cart.line_items[lineIndex].quantity = quantity;
     }
     const order = await commerceLayer.updateOrder(cart);
-    dispatchCart(order);
+    order && dispatchCart(order);
   };
 
   const providerValue = {
