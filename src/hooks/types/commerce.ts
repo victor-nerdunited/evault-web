@@ -16,8 +16,8 @@ export type Order = {
   total_tax:            string;
   customer_id:          number;
   order_key:            string;
-  billing:              Ing;
-  shipping:             Ing;
+  billing:              BillingInfo;
+  shipping:             ShippingInfo;
   payment_method:       string;
   payment_method_title: string;
   transaction_id:       string;
@@ -57,7 +57,7 @@ export type Collection = {
   href: string;
 }
 
-export type Ing = {
+export type ShippingInfo = {
   first_name: string;
   last_name:  string;
   company:    string;
@@ -67,8 +67,11 @@ export type Ing = {
   state:      string;
   postcode:   string;
   country:    string;
-  email?:     string;
   phone:      string;
+}
+
+export type BillingInfo = ShippingInfo & {
+  email:      string;
 }
 
 export type LineItem = {
