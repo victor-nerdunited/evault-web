@@ -1,11 +1,8 @@
 "use client";
 
-import { usePrices } from "@/hooks/usePrices";
-import { useTokenPrice } from "@/hooks/useTokenprice";
 import { useCheckout } from "@/lib/CheckoutProvider";
-import { getPrice } from "@/utils/priceUtil";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect } from "react";
 
 const OrderConfirmation = async () => {
   const searchParams = useSearchParams();
@@ -54,7 +51,7 @@ const OrderConfirmation = async () => {
               <div className="flex justify-between text-slate-900 dark:text-slate-200 text-base pt-4">
                 <span className="font-semibold">Order total</span>
                 <span>
-                  {Number(searchParams.get("total")).toLocaleString()} ELMT
+                  {Number(searchParams.get("total")).toFixedDecimal()} {searchParams.get("token")}
                 </span>
               </div>
               <div className="flex justify-between text-slate-900 dark:text-slate-200 text-base pt-4">

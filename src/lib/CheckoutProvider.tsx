@@ -5,6 +5,13 @@ import { createContext, Dispatch, useContext, useEffect, useReducer, useState } 
 import { Order, useCommerce } from '@/hooks/useCommerce';
 import { getCookie, removeCookie, setCookie } from 'typescript-cookie';
 import { LineItem } from '@/hooks/types/commerce';
+import { usePrices } from '@/hooks/usePrices';
+import { getPrice, getPrices, MineralPrices } from '@/utils/priceUtil';
+//import { usePaymentToken } from '@/hooks/usePaymentToken';
+import { useLogger } from '@/utils/useLogger';
+import { PaymentToken } from '@/types/payment-token';
+import { getTokenPrice } from '@/utils/tokenPrice';
+import { ChainToken, usePaymentToken } from '@/hooks/usePaymentToken';
 
 export interface IContactInfo {
   firstName: string;
@@ -33,11 +40,17 @@ interface CheckoutContextType {
   cart: Order | null;
   contactInfo: IContactInfo | null;
   shippingAddress: IShippingAddress | null;
+  paymentToken: PaymentToken;
+  chainToken: ChainToken | null;
+  tokenPrice: number;
+
   clearOrder: () => void;
   createOrder: () => Promise<Order>;
   removeItem: (itemId: number) => Promise<void>;
   updateOrder: (order: Partial<Order>) => Promise<void>;
   updateQuantity: (itemId: number, quantity: number) => Promise<void>;
+  updatePaymentToken: (newPaymentToken: PaymentToken) => Promise<void>;
+  updateTokenPrice: () => Promise<void>;
 }
 
 // enum CartActionType {
@@ -53,11 +66,17 @@ const CheckoutContext = createContext<CheckoutContextType>({
   cart: null,
   contactInfo: null,
   shippingAddress: null,
+  paymentToken: PaymentToken.ELMT,
+  chainToken: null,
+  tokenPrice: 0,
+
   clearOrder: () => {},
   createOrder: (): Promise<Order> => Promise.resolve({} as Order),
   removeItem: () => Promise.resolve(),
   updateOrder: (order: Partial<Order>) => Promise.resolve(),
   updateQuantity: () => Promise.resolve(),
+  updatePaymentToken: (newPaymentToken: PaymentToken) => Promise.resolve(),
+  updateTokenPrice: () => Promise.resolve(),
 });
 const CheckoutDispatchContext = createContext<{
   dispatchCart: Dispatch<Order>, 
@@ -70,18 +89,29 @@ const CheckoutDispatchContext = createContext<{
 });
 
 export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // const [tasks, dispatch] = useReducer(
-  //   tasksReducer,
-  //   initialTasks
-  // );
-  
-  // const jsonCart = localStorage.getItem('cart');
-  // const initialCart: ICart = jsonCart ? JSON.parse(jsonCart) : { items: [], timestamp: Date.now() };
+  const logger = useLogger("CheckoutProvider");
   const commerceLayer = useCommerce();
   
   const [cart, dispatchCart] = useReducer(cartReducer, null as unknown as Order);
   const [contactInfo, dispatchContactInfo] = useReducer(contactInfoReducer, null as unknown as IContactInfo);
   const [shippingAddress, dispatchShippingAddress] = useReducer(shippingAddressReducer, null as unknown as IShippingAddress);
+
+  const { prices, refreshPrices } = usePrices();
+  //const { tokenPrice, refreshTokenPrice } = useTokenPrice();
+  //const { paymentToken, changePaymentToken } = usePaymentToken();
+  const [tokenPrice, setTokenPrice] = useState(0);
+  //const [paymentToken, setPaymentToken] = useState(PaymentToken.ELMT);
+  const { paymentToken, chainToken, changePaymentToken } = usePaymentToken();
+
+  useEffect(() => {
+    if (!cart || !commerceLayer) return;
+    logger.log("[CheckoutProvider/useEffect] updating cart total", { tokenPrice });
+
+    commerceLayer.updateCartPricesAsync(cart, paymentToken).then((order) => {
+      logger.log("[CheckoutProvider/useEffect] cart total", cart.total);
+      dispatchCart(JSON.parse(JSON.stringify(order)));
+    });
+  }, [prices, tokenPrice, paymentToken]);
 
   useEffect(() => {
     if (!commerceLayer) return;
@@ -94,8 +124,30 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const fetchCart = async () => {
       //const cart = await commerceLayer.orders.retrieve(orderId, {include: ["line_items", "line_items.sku"]});
-      const cart = await commerceLayer.getOrder(orderId);
+      const cart = await commerceLayer.getOrder(orderId, paymentToken);
       dispatchCart(cart);
+
+      if (!contactInfo) {
+        dispatchContactInfo({
+          firstName: cart.billing.first_name,
+          lastName: cart.billing.last_name,
+          email: cart.billing.email,
+          phone: cart.billing.phone,
+        });
+      }
+
+      if (!shippingAddress) {
+        dispatchShippingAddress({
+          addressType: AddressType.home,
+          firstName: cart.shipping.first_name,
+          lastName: cart.shipping.last_name,
+          address1: cart.shipping.address_1,
+          city: cart.shipping.city,
+          state: cart.shipping.state,
+          country: cart.shipping.country,
+          postalCode: cart.shipping.postcode,
+        })
+      }
     }
     fetchCart();
   }, []);
@@ -108,7 +160,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }
 
   const createOrder = async (): Promise<Order> => {
-    const order = await commerceLayer.createOrder();
+    const order = await commerceLayer!.createOrder();
     dispatchCart(order);
     return order;
   }
@@ -128,12 +180,12 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
     // await commerceLayer.line_items.delete(itemId);
     // const order = await commerceLayer.orders.retrieve(cart.id, {include: ["line_items", "line_items.sku"]});
-    const order = await commerceLayer.updateOrder(orderUpdate as Partial<Order>);
+    const order = await commerceLayer!.updateOrder(orderUpdate as Partial<Order>, paymentToken);
     dispatchCart(order as unknown as Order);
   };
 
   const updateOrder = async(order: Partial<Order>): Promise<void> => {
-    const result = await commerceLayer.updateOrder(order);
+    const result = await commerceLayer!.updateOrder(order, paymentToken);
     result && dispatchCart(result);
   }
 
@@ -143,37 +195,58 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const orderUpdate: Partial<Order> = {
       id: cart.id,
+      discount_total: "0",
+      coupon_lines: [],
       line_items: cart.line_items.map(x => ({
         id: x.id,
+        name: x.name,
+        price: x.price,
+        quantity: x.quantity,
         sku: x.sku,
-        quantity: x.quantity
+        total: x.total
       })) as LineItem[]
     };
-    const lineIndex = orderUpdate.line_items!.findIndex(x => x.id === itemId);
-    if (lineIndex > -1) {
-      orderUpdate.line_items![lineIndex].quantity = quantity;
+    const lineItem = orderUpdate.line_items!.find(x => x.id === itemId);
+    if (lineItem) {
+      const prices = await getPrices();
+      const tokenPrice = await getTokenPrice(paymentToken);
+      lineItem.price = await getPrice(prices, lineItem.name, lineItem.sku, tokenPrice);
+      lineItem.quantity = quantity;
+      lineItem.total = (lineItem.price * quantity).toString();
     }
-    const order = await commerceLayer.updateOrder(orderUpdate);
+    const order = await commerceLayer.updateOrder(orderUpdate, paymentToken);
     order && dispatchCart(order);
   };
+
+  const updatePaymentToken = async (newPaymentToken: PaymentToken): Promise<void> => {
+    const newTokenPrice = await getTokenPrice(newPaymentToken, true);
+    setTokenPrice(newTokenPrice);
+    changePaymentToken(newPaymentToken);
+  }
+
+  const updateTokenPrice = async(): Promise<void> => {
+    const tokenPrice = await getTokenPrice(paymentToken, true);
+    setTokenPrice(tokenPrice);
+  }
 
   const providerValue = {
     cart,
     contactInfo,
     shippingAddress,
+    paymentToken,
+    chainToken,
+    tokenPrice,
+
     clearOrder,
     createOrder,
     removeItem,
     updateOrder,
     updateQuantity,
+    updatePaymentToken,
+    updateTokenPrice,
   }
 
   return (
-    // <TasksContext.Provider value={tasks}>
-    //   <TasksDispatchContext.Provider value={dispatch}>
-    //     {children}
-    //   </TasksDispatchContext.Provider>
-    // </TasksContext.Provider>
     <CheckoutContext.Provider value={providerValue}>
       <CheckoutDispatchContext.Provider value={{dispatchCart, dispatchContactInfo, dispatchShippingAddress}}>
         {children}
@@ -189,39 +262,7 @@ export function useCheckoutDispatch() {
   return useContext(CheckoutDispatchContext);
 }
 
-// export function useTasksDispatch() {
-//   return useContext(CheckoutDispatchContext);
-// }
-
-// function tasksReducer(tasks, action) {
-//   switch (action.type) {
-//     case 'added': {
-//       return [...tasks, {
-//         id: action.id,
-//         text: action.text,
-//         done: false
-//       }];
-//     }
-//     case 'changed': {
-//       return tasks.map(t => {
-//         if (t.id === action.task.id) {
-//           return action.task;
-//         } else {
-//           return t;
-//         }
-//       });
-//     }
-//     case 'deleted': {
-//       return tasks.filter(t => t.id !== action.id);
-//     }
-//     default: {
-//       throw Error('Unknown action: ' + action.type);
-//     }
-//   }
-// }
-
 function cartReducer(state: Order, newState: Order): Order {
-  // localStorage.setItem('cart', JSON.stringify(newState));
   if (newState) {
     setCookie('orderId', newState.id);
   }
@@ -233,9 +274,3 @@ function contactInfoReducer(state: IContactInfo, newState: IContactInfo): IConta
 function shippingAddressReducer(state: IShippingAddress, newState: IShippingAddress): IShippingAddress {
   return newState;
 }
-
-// const initialTasks = [
-//   { id: 0, text: 'Philosopher’s Path', done: true },
-//   { id: 1, text: 'Visit the temple', done: false },
-//   { id: 2, text: 'Drink matcha', done: false }
-// ];

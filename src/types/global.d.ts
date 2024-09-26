@@ -6,6 +6,10 @@ declare global {
   interface Window {
     ethereum: ethers.providers.Web3Provider;
   }
+
+  interface Number {
+    toFixedDecimal: () => string;
+  }
 }
 
 declare module 'wagmi' {

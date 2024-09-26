@@ -14,11 +14,10 @@ import { useCheckout } from "@/lib/CheckoutProvider";
 //import { Product, PRODUCTS } from "@/data/data";
 import ButtonPrimary from "@/shared/Button/ButtonPrimary";
 import ButtonSecondary from "@/shared/Button/ButtonSecondary";
-import { getPrice, getPrices, MineralPrices } from "@/utils/priceUtil";
-import { getTokenPrice } from "@/utils/tokenPrice";
+import { MineralPrices } from "@/utils/priceUtil";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 
 export default function CartDropdown() {
   // const [cart, setCart] = useState<Cart | null>(null);
@@ -33,18 +32,23 @@ export default function CartDropdown() {
   const { tokenPrice } = useTokenPrice();
   const { prices } = usePrices();
 
-  const [subtotal, setSubtotal] = useState(0);
-  useEffect(() => {
-    const _subtotal = cart?.line_items?.reduce((acc, item) => {
-      const price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice);
-      return acc + price * item.quantity;
-    }, 0) ?? 0;
-    setSubtotal(_subtotal);
-  }, [cart]);
+  // const [subtotal, setSubtotal] = useState(0);
+  // useEffect(() => {
+  //   const _subtotal = cart?.line_items?.reduce((acc, item) => {
+  //     const price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice);
+  //     return acc + price * item.quantity;
+  //   }, 0) ?? 0;
+  //   setSubtotal(_subtotal);
+  // }, [cart]);
+  const subtotal = useMemo(() => {
+    const totalNumber = parseFloat(cart?.total ?? "0");
+    return totalNumber;
+  }, [cart?.total]);
 
   const renderProduct = (item: LineItem, index: number, close: () => void) => {
     //const price = item.total_amount_float ?? 0;
-    let price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice);
+    //let price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice);
+    const price = item.price;
     const { name, image } = item;
     return (
       <div key={index} className="flex py-5 last:pb-0">

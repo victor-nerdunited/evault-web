@@ -11,7 +11,7 @@ import { AddressType, IContactInfo, IShippingAddress, useCheckout, useCheckoutDi
 import { Order, useCommerce } from "@/hooks/useCommerce";
 import { useTokenPrice } from "@/hooks/useTokenprice";
 import { usePrices } from "@/hooks/usePrices";
-import { useLogger } from "@/utils/logger";
+import { useLogger } from "@/utils/useLogger";
 
 interface Props {
   //checkoutId: string | null;
@@ -29,7 +29,7 @@ const ShippingAddress: FC<Props> = ({
   onOpenActive,
 }) => {
   const logger = useLogger("shipping-address");
-  const { cart, updateOrder } = useCheckout();
+  const { cart, shippingAddress, updateOrder } = useCheckout();
   const { dispatchShippingAddress } = useCheckoutDispatch();
   const commerceLayer = useCommerce();
   const { tokenPrice } = useTokenPrice();
@@ -39,21 +39,21 @@ const ShippingAddress: FC<Props> = ({
     defaultValues: {
       firstName: contactInfo?.firstName ?? "",
       lastName: contactInfo?.lastName ?? "",
-      address1: "",
-      city: "",
-      country: "",
-      state: "",
-      postalCode: "",
+      address1: cart?.shipping.address_1 ?? "",
+      city: cart?.shipping.city ?? "",
+      country: cart?.shipping.country ?? "",
+      state: cart?.shipping.state ?? "",
+      postalCode: cart?.shipping.postcode ?? "",
       addressType: AddressType.home,
     },
     values: {
       firstName: contactInfo?.firstName ?? "",
       lastName: contactInfo?.lastName ?? "",
-      address1: "",
-      city: "",
-      country: "US",
-      state: "",
-      postalCode: "",
+      address1: shippingAddress?.address1 ?? "",
+      city: shippingAddress?.city ?? "",
+      country: shippingAddress?.country ?? "",
+      state: shippingAddress?.state ?? "",
+      postalCode: shippingAddress?.postalCode ?? "",
       addressType: AddressType.home,
     }
   })

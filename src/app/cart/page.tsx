@@ -1,82 +1,51 @@
 "use client";
 
-import { NoSymbolIcon, CheckIcon } from "@heroicons/react/24/outline";
+import { NoSymbolIcon } from "@heroicons/react/24/outline";
 import NcInputNumber from "@/components/NcInputNumber";
 import Prices from "@/components/Prices";
-import { Product, PRODUCTS } from "@/data/data";
 import ButtonPrimary from "@/shared/Button/ButtonPrimary";
 import Image from "next/image";
 import Link from "next/link";
 import { useCommerce, } from "@/hooks/useCommerce";
 import { useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
-import { getPrice } from "@/utils/priceUtil";
 import { usePrices } from "@/hooks/usePrices";
-import { useTokenPrice } from "@/hooks/useTokenprice";
-import { useEffect, useState } from "react";
-import { PriceWarning } from "@/components/PriceWarning";
-import { useLogger } from "@/utils/logger";
-import { estimateGas } from "@wagmi/core";
-import { useAccount, useBalance, useClient, useConfig, useEstimateFeesPerGas, useFeeData, usePublicClient } from "wagmi";
-import * as ethers from "ethers";
-import { ELMT_TOKEN_ABI, ELMT_TOKEN_ADDRESS, ELMT_WALLET_ADDRESS } from "@/lib/web3/constants";
+import { useMemo } from "react";
+import { useLogger } from "@/utils/useLogger";
+import { useAccount, useBalance, useConfig } from "wagmi";
+import { ELMT_TOKEN_ADDRESS } from "@/lib/web3/constants";
 import { useEstimateGasFee } from "@/hooks/useEstimateGasFee";
 import { LineItem } from "@/hooks/types/commerce";
 
 const CartPage = () => {
   const logger = useLogger("cart");
-  const { cart, contactInfo, shippingAddress, removeItem, updateQuantity } = useCheckout();
+  const { cart, paymentToken, tokenPrice, removeItem, updateQuantity } = useCheckout();
   const {dispatchCart: cartDispatch} = useCheckoutDispatch();
   const commerceLayer = useCommerce()!;
   const { prices } = usePrices();
-  const { tokenPrice } = useTokenPrice();
   
   const config = useConfig();
   const account = useAccount();
   const token = useBalance({ address: account?.address, token: ELMT_TOKEN_ADDRESS });
-  // get the gas price
-  // const estimatedFees = useEstimateFeesPerGas();
-  // const publicClient = usePublicClient();
   
-  const [subtotal, setSubtotal] = useState(0);
-  const { gasCost } = useEstimateGasFee(subtotal);
-
-  useEffect(() => {
-    logger.log("[cart] cart", cart);
-    if (!cart) return;
-
-    const _subtotal = cart.line_items?.reduce((acc, item) => {
-      const price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice);
-      logger.log("[cart] price", price);
-      return acc + price * item.quantity;
-    }, 0) ?? 0;
-    setSubtotal(_subtotal);
-  }, [cart, tokenPrice, prices]);
-  
+  // const [subtotal, setSubtotal] = useState(0);
   // useEffect(() => {
-  //   const callEstimateGas = async () => {
-  //     if (token.data && subtotal > 0 && estimatedFees.data) {
-  //       // const gasEstimate = await estimateGas(config, {
-  //       //   to: ELMT_WALLET_ADDRESS,
-  //       //   value: BigInt(subtotal * 10 ** token.data.decimals),
-  //       // });
-  //       // logger.log("[cart] gas estimate", gasEstimate, estimatedFees.data.maxFeePerGas, estimatedFees.data.maxFeePerGas);
+  //   logger.log("[cart] cart", cart);
+  //   if (!cart) return;
 
-  //       const gas = await publicClient.estimateContractGas({
-  //         address: ELMT_TOKEN_ADDRESS,
-  //         abi: ELMT_TOKEN_ABI,
-  //         functionName: 'transfer',
-  //         args: [ELMT_WALLET_ADDRESS, BigInt(subtotal * 10 ** token.data.decimals)],
-  //         account: account.address
-  //       })
-  //       const maxFeePerGas = estimatedFees.data.maxFeePerGas!;
-  //       const gasFloat = parseFloat(ethers.formatEther(gas));
-  //       const feeFloat = parseFloat(ethers.formatEther(maxFeePerGas));
-  //       const gasCost = gasFloat * feeFloat * (10 ** 18);
-  //       logger.log("[cart] gas estimate2", gasCost, gasFloat, feeFloat);
-  //     }
-  //   }
-  //   callEstimateGas();
-  // }, [subtotal, token.data, estimatedFees.data]);
+  //   const _subtotal = cart.line_items?.reduce((acc, item) => {
+  //     const price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice);
+  //     logger.log("[cart] price", price);
+  //     return acc + price * item.quantity;
+  //   }, 0) ?? 0;
+  //   setSubtotal(_subtotal);
+  // }, [cart, tokenPrice, prices]);
+  
+  const subtotal = useMemo(() => {
+    const totalNumber = parseFloat(cart?.total ?? "0");
+    logger.log("[checkout/subtotal]", totalNumber);
+    return totalNumber;
+  }, [cart?.total]);
+  const { gasCost } = useEstimateGasFee(subtotal);
 
 
   const renderStatusSoldout = () => {
@@ -99,8 +68,8 @@ const CartPage = () => {
   };
 
   const renderProduct = (item: LineItem, index: number) => {
-    const price = getPrice(prices, item.name ?? "", item.sku ?? "" , tokenPrice);
-    const { image, name, quantity } = item;
+    //const price = getPrice(prices, item.name ?? "", item.sku ?? "" , tokenPrice);
+    const { image, name, price, quantity } = item;
     const maxQuantity = parseInt(item.meta_data.find(x => x.key === "max_purchase_quantity")?.value.toString() ?? "");
     const quantityOptions = Array.from({ length: maxQuantity || 3 }, (_, i) => ({
       value: i + 1,
@@ -213,7 +182,7 @@ const CartPage = () => {
                 <div className="flex justify-between pb-4">
                   <span>Total</span>
                   <span className="font-semibold text-slate-900 dark:text-slate-200">
-                    {subtotal.toLocaleString()} ELMT
+                    {subtotal.toFixedDecimal()} {paymentToken}
                   </span>
                 </div>
                 {/* <div className="flex justify-between py-4">
@@ -235,7 +204,7 @@ const CartPage = () => {
                 <div className="flex justify-between py-4">
                   <span>Estimated gas fee</span>
                   <span className="font-semibold text-slate-900 dark:text-slate-200">
-                    {gasCost.toFixed(6)} ETH
+                    {gasCost.toFixedDecimal()} ETH
                   </span>
                 </div>
               </div>

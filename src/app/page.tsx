@@ -16,10 +16,12 @@ import { MobileView } from "react-device-detect";
 import { isCheckoutDisabled } from "@/utils/util";
 import { Alert, AlertType } from "@/shared/Alert/Alert";
 import { Product } from "@/hooks/types/commerce";
+import { useCheckout } from "@/lib/CheckoutProvider";
 
 /* this is a copy of collection/page.tsx */
 const PageCollection = ({}) => {
   const commerceLayer = useCommerce();
+  const { paymentToken } = useCheckout();
 
   const [products, setProducts] = useState<Product[] | null>(null);
 
@@ -28,7 +30,7 @@ const PageCollection = ({}) => {
 
     const fetchProducts = async () => {
       //const products = await commerceLayer?.skus.list({ include: ["prices"] });
-      const products = await commerceLayer.getProducts();
+      const products = await commerceLayer.getProducts(paymentToken);
       setProducts(products ?? []);
     };
     fetchProducts();

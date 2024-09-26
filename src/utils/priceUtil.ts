@@ -1,9 +1,11 @@
-import { useLogger } from "./logger";
+import { PaymentToken } from "@/types/payment-token";
+import { useLogger } from "./useLogger";
+import { ELMT_TOKEN_ADDRESS, WETH_TOKEN_ADDRESS } from "@/lib/web3/constants";
 
-const PRICE_MULTIPLIER_GOLD = 1.10;
-const PRICE_MULTIPLIER_SILVER = 1.40;
+const PRICE_MULTIPLIER_GOLD = 1.02;
+const PRICE_MULTIPLIER_SILVER = 1.08;
 
-const logger = useLogger("mineral-prices");
+const logger = useLogger("mineral-prices", "debug");
 
 export interface MineralPrices {
   goldPrice: number;
@@ -19,26 +21,28 @@ export const isSilver = (name: string, sku: string) => {
 }
 
 export const getPrice = (prices: MineralPrices, name: string, sku: string, tokenPrice: number) => {
-  logger.log("[getPrice] prices", prices, tokenPrice);
+  logger.log("[priceUtil/getPrice] prices", { prices, tokenPrice });
   let price = 0;
   if (isGold(name, sku)) {
     price = Number(prices.goldPrice);
   } else if (isSilver(name, sku)) {
     price = Number(prices.silverPrice);
+  } else {
+    throw new Error("[priceUtil/getPrice] Unknown product");
   }
 
-  const result = Number((price / tokenPrice).toFixed());
-  logger.log("[getPrice] result", result, price, tokenPrice);
+  const result = Number((price / tokenPrice).toFixedDecimal());
+  logger.log("[priceUtil/getPrice] result", result, price, tokenPrice);
   return result;
 }
 
 export const getPrices = async (forceRefresh: boolean = false): Promise<MineralPrices> => {
-  if (["staging", "local"].includes(process.env.NEXT_PUBLIC_DEPLOY_STAGE ?? "production")) {
-    return {
-      goldPrice: 0.005,
-      silverPrice: 0.001,
-    };
-  }
+  // if (["staging", "local"].includes(process.env.NEXT_PUBLIC_DEPLOY_STAGE ?? "production")) {
+  //   return {
+  //     goldPrice: 0.005,
+  //     silverPrice: 0.001,
+  //   };
+  // }
 
   const cacheKey = "goldprice";
   const cacheEntry = localStorage.getItem(cacheKey);
@@ -69,4 +73,26 @@ const fetchPrices = async () => {
   });
   const data = await response.json();
   return data;
+}
+
+export function getTokenAddress(token: PaymentToken): `0x${string}` {
+  switch(token) {
+    case PaymentToken.ETH:
+      return WETH_TOKEN_ADDRESS;
+    case PaymentToken.ELMT:
+    default:
+      return ELMT_TOKEN_ADDRESS;
+  }
+}
+
+Number.prototype.toFixedDecimal = function (this: number) {
+  if (this === 0) return this.toString();
+  let inputCopy1 = this;
+  let numDecimals = 0;
+  while (inputCopy1 < 1) {
+    numDecimals++;
+    inputCopy1 = inputCopy1 * 10;
+  }
+  //return inputCopy.toFixed(numDecimals + (numDecimals > 0 ? 2 : 0))
+  return this.toFixed(numDecimals + 2)
 }

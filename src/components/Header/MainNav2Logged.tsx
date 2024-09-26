@@ -44,8 +44,10 @@ const MainNav2Logged: FC<MainNav2LoggedProps> = () => {
 
   useAccountEffect({
     onConnect: async (data) => {
-      H.identify(data.address);
-      mixpanel.identify(data.address);
+      if (process.env.NODE_ENV === 'production') {
+        H.identify(data.address);
+        mixpanel.identify(data.address);
+      }
     }
   });
 

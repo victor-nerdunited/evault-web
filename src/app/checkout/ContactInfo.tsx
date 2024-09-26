@@ -11,7 +11,7 @@ import {
   useCheckoutDispatch,
 } from "@/lib/CheckoutProvider";
 import { Order, useCommerce } from "@/hooks/useCommerce";
-import { useLogger } from "@/utils/logger";
+import { useLogger } from "@/utils/useLogger";
 import { useTokenPrice } from "@/hooks/useTokenprice";
 import { usePrices } from "@/hooks/usePrices";
 
@@ -29,14 +29,16 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
   const { prices } = usePrices();
 
   const { handleSubmit, control, watch } = useForm<IContactInfo>({
-    defaultValues: contactInfo ?? {
-      firstName: "",
-      phone: "",
-      email: "",
+    defaultValues: {
+      firstName: cart?.billing.first_name ?? "",
+      lastName: cart?.billing.last_name ?? "",
+      phone: cart?.billing.phone ?? "",
+      email: cart?.billing.last_name ?? "",
       // name: "Chuck Norris",
       // phone: "15555555555",
       // email: "vponce@nerdunited.com",
     },
+    values: contactInfo!
   });
 
   const isCompleted =

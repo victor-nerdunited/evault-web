@@ -1,35 +1,32 @@
 "use client";
 
-import Label from "@/components/Label/Label";
 import NcInputNumber from "@/components/NcInputNumber";
 import Prices from "@/components/Prices";
-import { Product, PRODUCTS } from "@/data/data";
 import { useEffect, useMemo, useState } from "react";
 import ButtonPrimary from "@/shared/Button/ButtonPrimary";
-import Input from "@/shared/Input/Input";
 import ContactInfo from "./ContactInfo";
 import PaymentMethod from "./PaymentMethod";
 import Image from "next/image";
 import Link from "next/link";
 import { useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
 import ShippingAddress from "./ShippingAddress";
-import { useAccount, useAccountEffect, useBalance, useConfig, useSendTransaction, useWriteContract } from "wagmi";
-import { getTransactionReceipt, waitForTransactionReceipt } from "@wagmi/core";
+import { useAccount, useAccountEffect, useConfig, useSendTransaction, useWriteContract } from "wagmi";
 import { ELMT_TOKEN_ABI, ELMT_TOKEN_ADDRESS, ELMT_WALLET_ADDRESS } from "@/lib/web3/constants";
 import { Order, useCommerce } from "@/hooks/useCommerce";
-import { getPrice, getPrices, isGold, isSilver } from "@/utils/priceUtil";
+import { getPrices, isGold, isSilver } from "@/utils/priceUtil";
 import { usePrices } from "@/hooks/usePrices";
-import { useTokenPrice } from "@/hooks/useTokenprice";
 import { ContractFunctionExecutionError } from "viem";
 import { getTokenPrice } from "@/utils/tokenPrice";
-import NcModal from "@/shared/NcModal/NcModal";
 import PricesChangedModal from "./PricesChangedMoal";
 import { useRouter } from "next/navigation";
-import { useElmtBalance } from "@/hooks/useElmtBalance";
-import { useLogger } from "@/utils/logger";
+//import { useElmtBalance } from "@/hooks/useElmtBalance";
+import { useLogger } from "@/utils/useLogger";
 import { useEstimateGasFee } from "@/hooks/useEstimateGasFee";
 import { simulateContract } from "viem/actions";
 import { LineItem } from "@/hooks/types/commerce";
+import { useUnitedWallet } from "@/hooks/useUnitedWallet";
+import { PaymentToken } from "@/types/payment-token";
+import { parseEther } from "ethers";
 
 
 const CheckoutPage = () => {
@@ -41,52 +38,74 @@ const CheckoutPage = () => {
   //const [contactInfo, setContactInfo] = useState<IContactFormInputs | null>(null);
   //const [shippingAddress, setShippingAddress] = useState<IShippingAddress | null>(null);
   // const [cart, setCart] = useState<Cart | null>(null);
-  const { cart, contactInfo, shippingAddress, removeItem, updateOrder, updateQuantity } = useCheckout()!;
+  const { cart, contactInfo, shippingAddress, tokenPrice, paymentToken, chainToken, removeItem, updateOrder, updateQuantity, updateTokenPrice } = useCheckout()!;
+
   const { dispatchCart } = useCheckoutDispatch()!;
   const commerceLayer = useCommerce()!;
   //const [checkoutTokenId, setCheckoutTokenId] = useState<string | null>(null);
   const account = useAccount();
-  const { sendTransactionAsync } = useSendTransaction();
-  let { 
-    data: transactionHash, 
-    error: transactionError, 
-    isPending: transactionPending, 
-    status: transactionStatus, 
+  const { 
+    data: txHashNative, 
+    error: txErrorNative,
+    isPending: txPendingNative,
+    status: txStatusNative,
+    sendTransaction } = useSendTransaction();
+  const { 
+    data: txHashToken, 
+    error: txErrorToken, 
+    isPending: txPendingToken, 
+    status: txStatusToken, 
     writeContract,
   } = useWriteContract();
   
   const config = useConfig();
-  const token = useBalance({ address: account?.address, token: ELMT_TOKEN_ADDRESS });
+  //const token = useBalance({ address: account?.address, token: ELMT_TOKEN_ADDRESS });
   const { prices, refreshPrices } = usePrices();
-  const { tokenPrice, refreshTokenPrice } = useTokenPrice();
   const [placingOrder, setPlacingOrder] = useState(false);
   const [submittingTransaction, setSubmittingTransaction] = useState(false);
-  const [subtotal, setSubtotal] = useState(0);
+  //const [subtotal, setSubtotal] = useState(0);
   const [pricesChanged, setPricesChanged] = useState(false);
   const router = useRouter();
-  const elmtBalance = useElmtBalance();
+  //const elmtBalance = useElmtBalance();
+  const { elmtBalance } = useUnitedWallet();
   const [isDebug, setIsDebug] = useState(false);
+  const subtotal = useMemo(() => {
+    const totalNumber = parseFloat(cart?.total ?? "0");
+    logger.log("[checkout/subtotal]", totalNumber);
+    return totalNumber;
+  }, [cart?.total]);
 
   const { gasCost } = useEstimateGasFee(subtotal);
 
-  //const fromToken = '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'; // USDC
-  //const swapUrl = `https://portfolio.metamask.io/swap?fromAddress=${fromToken}&toAddress=${toToken}`;
   const swapUrl = `https://app.uniswap.org/#/swap?inputCurrency=eth&outputCurrency=${ELMT_TOKEN_ADDRESS}&exactAmount=${subtotal}&exactField=output`;
 
-  useEffect(() => {
-    if (!cart) return;
+  // useEffect(() => {
+  //   if (!cart) return;
 
-    const _subtotal = cart.line_items?.reduce((acc, item) => {
-      const price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice);
-      return acc + price * item.quantity;
-    }, 0) ?? 0;
-    setSubtotal(_subtotal);
-  }, [cart, tokenPrice, prices]);
+  //   // const _subtotal = cart.line_items?.reduce((acc, item) => {
+  //   //   const price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice);
+  //   //   return acc + price * item.quantity;
+  //   // }, 0) ?? 0;
+  //   logger.debug("[checkout] cart total", cart.total, paymentToken, parseFloat(cart.total).toString());
+  //   setSubtotal(parseFloat(cart.total));
+  // //}, [cart, tokenPrice, prices]);
+  // }, [cart]);
+  useEffect(() => {
+    logger.log("[checkout/useEffect/chainToken]", chainToken);
+  }, [chainToken]);
 
   useEffect(() => {
     const isDebug = new URLSearchParams(window.location.search).get("debug") !== null;
     setIsDebug(isDebug);
   }, []);
+
+  useEffect(() => {
+    if (shippingAddress && contactInfo) {
+      setTabActive("PaymentMethod");
+    } else if (contactInfo) {
+      setTabActive("ShippingAddress")
+    }
+  }, [contactInfo, shippingAddress]);
 
   useAccountEffect({
     onConnect: async (data) => {
@@ -102,28 +121,44 @@ const CheckoutPage = () => {
     return account?.address && contactInfo && shippingAddress && (elmtBalance >= subtotal || isDebug);
   }, [account?.address, contactInfo, shippingAddress, subtotal, elmtBalance, isDebug]);
 
-  const sendToken = async(to: string, nativeAmount: bigint) => {
-    if (!token.data) throw new Error("Token data not found");
+  const transactionHash = useMemo(() => txHashToken || txHashNative, [txHashToken, txHashNative]);
+  const transactionPending = useMemo(() => txPendingToken && txPendingNative, [txPendingToken, txPendingNative]);
+  const transactionError = useMemo(() => txErrorToken || txErrorNative, [txErrorToken, txErrorNative]);
+  const transactionStatus = useMemo(() => {
+    return paymentToken === PaymentToken.ETH
+      ? txStatusNative
+      : txStatusToken;
 
-    const simulationResults = await simulateContract(config.getClient(), {
-      abi: ELMT_TOKEN_ABI,
-      address: ELMT_TOKEN_ADDRESS,
-      functionName: 'transfer',
-      args: [
-        to,
-        nativeAmount,
-      ],
-      account: account.address,
-    });
-    logger.log("[sendToken] simulationResults", simulationResults);
-    if (simulationResults.result) {
-      writeContract(simulationResults.request);
+  }, [txStatusToken, txStatusNative]);
+
+  const sendToken = async(to: `0x${string}`, amount: number) => {
+    if (!chainToken) throw new Error("Token data not found");
+
+    if (paymentToken === PaymentToken.ETH) {
+      sendTransaction({ to, value: parseEther(amount.toFixed(18)) });
+    } else {
+      const nativeAmount = BigInt(amount * 10 ** chainToken.decimals);
+
+      const simulationResults = await simulateContract(config.getClient(), {
+        abi: ELMT_TOKEN_ABI,
+        address: chainToken.address,
+        functionName: 'transfer',
+        args: [
+          to,
+          nativeAmount,
+        ],
+        account: account.address,
+      });
+      logger.log("[sendToken] simulationResults", simulationResults);
+      if (simulationResults.result) {
+        writeContract(simulationResults.request);
+      }
     }
   }
 
   const ensurePrices = async () => {
     const localPrices = await getPrices(true);
-    const localTokenPrice = await getTokenPrice(true);
+    const localTokenPrice = await getTokenPrice(paymentToken, true);
 
     const minGoldPrice = localPrices.goldPrice * 0.99;
     const maxGoldPrice = localPrices.goldPrice * 1.01;
@@ -154,14 +189,15 @@ const CheckoutPage = () => {
 
   const refreshAllPrices = async () => {
     await refreshPrices();
-    await refreshTokenPrice();
+    //await updateTokenPrice();
+    updateTokenPrice();
   }
 
   const handlePlaceOrder= async (): Promise<void> => {
     if (!cart) return;
     if (!shippingAddress) return;
     if (!contactInfo) return;
-    if (!token.data) return;
+    if (!chainToken) return;
     if (!account.address) return;
 
     if (isDebug) {
@@ -178,7 +214,7 @@ const CheckoutPage = () => {
 
       await sendToken(
         ELMT_WALLET_ADDRESS, 
-        BigInt(subtotal * 10 ** token.data.decimals)
+        subtotal,
         //BigInt(10 * 10 ** token.data.decimals)
       );
     } catch (error: unknown) {
@@ -198,7 +234,7 @@ const CheckoutPage = () => {
     if (!cart) return;
     if (!shippingAddress) return;
     if (!contactInfo) return;
-    if (!token.data) return;
+    if (!chainToken) return;
     if (!account.address) return;
     if (!transactionHash) return;
 
@@ -222,7 +258,7 @@ const CheckoutPage = () => {
         ]
       }
       await updateOrder(orderUpdate);
-      router.push(`/order-confirmation?orderid=${cart?.id}&total=${subtotal}&hash=${transactionHash}`);
+      router.push(`/order-confirmation?orderid=${cart?.id}&total=${subtotal}&token=${paymentToken}&hash=${transactionHash}`);
     } catch (error) {
       logger.error("Error placing order", error);
 
@@ -248,8 +284,9 @@ const CheckoutPage = () => {
 
   const renderProduct = (item: LineItem, index: number) => {
     //const price = item.unit_amount_float;
-    const price = getPrice(prices, item.name ?? "", item.sku ?? "", tokenPrice);
-    const { image, name } = item;
+    //const price = getPrice(prices, item.name ?? "", item.sku ?? "", tokenPrice);
+    const { image, name, price } = item;
+    const priceNumber = price;
     const maxPurchaseQuantity = parseInt(item.meta_data.find(x => x.key === "max_purchase_quantity")?.value);
     const quantityOptions = Array.from({ length: maxPurchaseQuantity || 3 }, (_, i) => ({
       value: i + 1,
@@ -286,17 +323,17 @@ const CheckoutPage = () => {
                     id="qty"
                     className="form-select text-sm rounded-md py-1 border-slate-200 dark:border-slate-700 relative z-10 dark:bg-slate-800 "
                   >
-                    {quantityOptions.map(option => <option value={option.value}>{option.label}</option>)}
+                    {quantityOptions.map((option, index) => <option key={index} value={option.value}>{option.label}</option>)}
                   </select>
                   <Prices
                     contentClass="py-1 px-2 md:py-1.5 md:px-2.5 text-sm font-medium h-full"
-                    price={price || 0}
+                    price={priceNumber || 0}
                   />
                 </div>
               </div>
 
               <div className="hidden flex-1 sm:flex justify-end">
-                <Prices price={price || 0} className="mt-0.5" />
+                <Prices price={priceNumber || 0} className="mt-0.5" />
               </div>
             </div>
           </div>
@@ -416,7 +453,7 @@ const CheckoutPage = () => {
               <div className="flex justify-between pb-4">
                 <span>Total</span>
                 <span className="font-semibold text-slate-900 dark:text-slate-200">
-                  {subtotal.toLocaleString()} ELMT
+                  {subtotal.toFixedDecimal()} {paymentToken}
                 </span>
               </div>
               {/* <div className="flex justify-between py-2.5">
@@ -438,7 +475,7 @@ const CheckoutPage = () => {
               <div className="flex justify-between py-4">
                 <span>Estimated gas fee</span>
                 <span className="font-semibold text-slate-900 dark:text-slate-200">
-                  {gasCost.toFixed(6)} ETH
+                  {gasCost.toFixedDecimal()} ETH
                 </span>
               </div>
             </div>
