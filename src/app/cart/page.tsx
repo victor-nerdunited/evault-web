@@ -114,6 +114,7 @@ const CartPage = () => {
                   <Prices
                     contentClass="py-1 px-2 md:py-1.5 md:px-2.5 text-sm font-medium h-full"
                     price={price || 0}
+                    paymentToken={paymentToken}
                   />
                 </div>
               </div>
@@ -128,7 +129,10 @@ const CartPage = () => {
               </div>
 
               <div className="hidden flex-1 sm:flex justify-end">
-                <Prices price={price || 0} className="mt-0.5" />
+                <Prices 
+                  price={price || 0} 
+                  className="mt-0.5"
+                  paymentToken={paymentToken} />
               </div>
             </div>
           </div>

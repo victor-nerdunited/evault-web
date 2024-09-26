@@ -55,7 +55,7 @@ const ProductCard: FC<ProductCardProps> = ({
   const [variantActive, setVariantActive] = useState(0);
   const [showModalQuickView, setShowModalQuickView] = useState(false);
   const router = useRouter();
-  const { cart, createOrder, updateOrder, tokenPrice } = useCheckout();
+  const { cart, paymentToken, tokenPrice, createOrder, updateOrder } = useCheckout();
   const { dispatchCart } = useCheckoutDispatch();
   //const [price, setPrice] = useState<number>(0);
   const [updatingCart, setUpdatingCart] = useState<boolean>(false);
@@ -186,7 +186,7 @@ const ProductCard: FC<ProductCardProps> = ({
                   <span className="mx-2 border-s border-slate-200 dark:border-slate-700 h-4"></span>
                 </p>
               </div>
-              <Prices price={priceNumber ?? 0} className="mt-0.5" />
+              <Prices price={priceNumber ?? 0} className="mt-0.5" paymentToken={paymentToken} />
             </div>
           </div>
           <div className="flex flex-1 items-end justify-between text-sm">
@@ -301,7 +301,7 @@ const ProductCard: FC<ProductCardProps> = ({
           </div>
 
           <div className="flex justify-between items-end ">
-            <Prices price={priceNumber ?? 0} />
+            <Prices price={priceNumber ?? 0} paymentToken={paymentToken} />
             {/* <div className="flex items-center mb-0.5">
               <StarIcon className="w-5 h-5 pb-[1px] text-amber-400" />
               <span className="text-sm ms-1 text-slate-500 dark:text-slate-400">
