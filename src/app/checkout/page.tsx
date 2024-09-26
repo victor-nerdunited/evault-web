@@ -78,18 +78,6 @@ const CheckoutPage = () => {
   const { gasCost } = useEstimateGasFee(subtotal);
 
   const swapUrl = `https://app.uniswap.org/#/swap?inputCurrency=eth&outputCurrency=${ELMT_TOKEN_ADDRESS}&exactAmount=${subtotal}&exactField=output`;
-
-  // useEffect(() => {
-  //   if (!cart) return;
-
-  //   // const _subtotal = cart.line_items?.reduce((acc, item) => {
-  //   //   const price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice);
-  //   //   return acc + price * item.quantity;
-  //   // }, 0) ?? 0;
-  //   logger.debug("[checkout] cart total", cart.total, paymentToken, parseFloat(cart.total).toString());
-  //   setSubtotal(parseFloat(cart.total));
-  // //}, [cart, tokenPrice, prices]);
-  // }, [cart]);
   useEffect(() => {
     logger.log("[checkout/useEffect/chainToken]", chainToken);
   }, [chainToken]);
@@ -191,6 +179,7 @@ const CheckoutPage = () => {
     await refreshPrices();
     //await updateTokenPrice();
     updateTokenPrice();
+    setPricesChanged(false);
   }
 
   const handlePlaceOrder= async (): Promise<void> => {
@@ -568,7 +557,7 @@ const CheckoutPage = () => {
           </div>
         </div>
       </main>
-      <PricesChangedModal show={pricesChanged} onCloseModal={() => refreshAllPrices} />
+      <PricesChangedModal show={pricesChanged} onCloseModal={refreshAllPrices} />
     </div>
   );
 };

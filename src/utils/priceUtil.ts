@@ -38,9 +38,10 @@ export const getPrice = (prices: MineralPrices, name: string, sku: string, token
 
 export const getPrices = async (forceRefresh: boolean = false): Promise<MineralPrices> => {
   if (["staging", "local"].includes(process.env.NEXT_PUBLIC_DEPLOY_STAGE ?? "production")) {
+    const factor = 1 // (Math.random() * 100000 % 100);
     return {
-      goldPrice: 0.005,
-      silverPrice: 0.001,
+      goldPrice: 0.005 * factor,
+      silverPrice: 0.001 * factor,
     };
   }
 

@@ -105,7 +105,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     if (!cart || !commerceLayer) return;
-    logger.log("[CheckoutProvider/useEffect] updating cart total", { tokenPrice });
+    logger.log("[CheckoutProvider/useEffect] updating cart total", { tokenPrice, prices });
 
     commerceLayer.updateCartPricesAsync(cart, paymentToken).then((order) => {
       logger.log("[CheckoutProvider/useEffect] cart total", cart.total);

@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import { getPrices, MineralPrices } from "@/utils/priceUtil";
+import { create } from "zustand";
 
 export const usePrices = () => {
-  const [prices, setPrices] = useState<MineralPrices>({ goldPrice: 0, silverPrice: 0 });
+  const { prices, setPrices } = usePriceStore();
   
   useEffect(() => {
     const fetchPrices = async () => {
@@ -24,3 +25,12 @@ export const usePrices = () => {
     refreshPrices,
   };
 }
+
+interface PriceStoreState {
+  prices: MineralPrices;
+  setPrices: (prices: MineralPrices) => void;
+}
+const usePriceStore = create<PriceStoreState>((set) => ({
+  prices: { goldPrice: 0, silverPrice: 0 },
+  setPrices: (prices: MineralPrices) => set({ prices })
+}));
