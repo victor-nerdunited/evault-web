@@ -2,8 +2,8 @@ import { PaymentToken } from "@/types/payment-token";
 import { useLogger } from "./useLogger";
 import { ELMT_TOKEN_ADDRESS, WETH_TOKEN_ADDRESS } from "@/lib/web3/constants";
 
-const PRICE_MULTIPLIER_GOLD = 1.02;
-const PRICE_MULTIPLIER_SILVER = 1.08;
+const PRICE_MULTIPLIER_GOLD = 1.0;
+const PRICE_MULTIPLIER_SILVER = 1.0;
 
 const logger = useLogger("mineral-prices", "debug");
 
