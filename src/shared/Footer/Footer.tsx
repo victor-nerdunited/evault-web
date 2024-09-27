@@ -89,8 +89,14 @@ const Footer: React.FC = () => {
             <SocialsList1 className="flex items-center space-x-2 lg:space-x-0 lg:flex-col lg:space-y-3 lg:items-start" />
           </div> */}
           <div className="pt-2 col-span-6 md:col-span-10">
-            2000 W Ashton Blvd, Lehi, UT 84043. For questions, 
-            please contact us at <a style={{textDecoration: "underline"}} href="mailto:support@elementunited.com">support@elementunited.com</a>
+            <div>
+              2000 W Ashton Blvd, Lehi, UT 84043. For questions, 
+              please contact us at <a className="link" href="mailto:support@elementunited.com">support@elementunited.com</a>
+            </div>
+            <div className="mt-5">
+              <span className="mr-5"><a className="link" href="/privacy_4-6-23.pdf" target="_blank">Privacy Policy</a></span>
+              <span className="mr-5"><a className="link" href="/disclaimer_2-15-24.pdf" target="_blank">Disclaimers</a></span>
+            </div>
           </div>
         </div>
         {/* {widgetMenus.map(renderWidgetMenuItem)} */}
