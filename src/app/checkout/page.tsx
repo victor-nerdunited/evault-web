@@ -27,6 +27,7 @@ import { LineItem } from "@/hooks/types/commerce";
 import { useUnitedWallet } from "@/hooks/useUnitedWallet";
 import { PaymentToken } from "@/types/payment-token";
 import { parseEther } from "ethers";
+import { useTokenPrice } from "@/hooks/useTokenprice";
 
 
 const CheckoutPage = () => {
@@ -78,9 +79,14 @@ const CheckoutPage = () => {
   const { gasCost } = useEstimateGasFee(subtotal);
 
   const swapUrl = `https://app.uniswap.org/#/swap?inputCurrency=eth&outputCurrency=${ELMT_TOKEN_ADDRESS}&exactAmount=${subtotal}&exactField=output`;
+  const [ethTokenPrice, setEthTokenPrice] = useState(0);
   useEffect(() => {
     logger.log("[checkout/useEffect/chainToken]", chainToken);
-  }, [chainToken]);
+
+    (async () => {
+      setEthTokenPrice(await getTokenPrice(PaymentToken.ETH, true));
+    })();
+  }, []);
 
   useEffect(() => {
     const isDebug = new URLSearchParams(window.location.search).get("debug") !== null;
@@ -443,10 +449,15 @@ const CheckoutPage = () => {
                 </div>
               </div> */}
 
-              <div className="flex justify-between pb-4">
+              <div className="flex justify-between">
                 <span>Total</span>
                 <span className="font-semibold text-slate-900 dark:text-slate-200">
                   {subtotal.toFixedDecimal()} {paymentToken}
+                  <div className="text-right">
+                    <span className="text-xs text-slate-400">
+                      ~${(subtotal * tokenPrice).toFixedDecimal(0)}
+                    </span>
+                  </div>
                 </span>
               </div>
               {/* <div className="flex justify-between py-2.5">
@@ -469,6 +480,11 @@ const CheckoutPage = () => {
                 <span>Estimated gas fee</span>
                 <span className="font-semibold text-slate-900 dark:text-slate-200">
                   {gasCost.toFixedDecimal()} ETH
+                  <div className="text-right">
+                    <span className="text-xs text-slate-400">
+                      ~${(gasCost * ethTokenPrice).toFixedDecimal()}
+                    </span>
+                  </div>
                 </span>
               </div>
             </div>

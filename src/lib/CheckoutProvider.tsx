@@ -12,6 +12,7 @@ import { useLogger } from '@/utils/useLogger';
 import { PaymentToken } from '@/types/payment-token';
 import { getTokenPrice } from '@/utils/tokenPrice';
 import { ChainToken, usePaymentToken } from '@/hooks/usePaymentToken';
+import { useTokenPrice } from '@/hooks/useTokenprice';
 
 export interface IContactInfo {
   firstName: string;
@@ -97,9 +98,9 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [shippingAddress, dispatchShippingAddress] = useReducer(shippingAddressReducer, null as unknown as IShippingAddress);
 
   const { prices, refreshPrices } = usePrices();
-  //const { tokenPrice, refreshTokenPrice } = useTokenPrice();
+  const { tokenPrice, refreshTokenPrice } = useTokenPrice();
   //const { paymentToken, changePaymentToken } = usePaymentToken();
-  const [tokenPrice, setTokenPrice] = useState(0);
+  //const [tokenPrice, setTokenPrice] = useState(0);
   //const [paymentToken, setPaymentToken] = useState(PaymentToken.ELMT);
   const { paymentToken, chainToken, changePaymentToken } = usePaymentToken();
 
@@ -219,14 +220,14 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const updatePaymentToken = async (newPaymentToken: PaymentToken): Promise<void> => {
-    const newTokenPrice = await getTokenPrice(newPaymentToken, true);
-    setTokenPrice(newTokenPrice);
+    // const newTokenPrice = await getTokenPrice(newPaymentToken, true);
+    await refreshTokenPrice(true);
     changePaymentToken(newPaymentToken);
   }
 
   const updateTokenPrice = async(): Promise<void> => {
-    const tokenPrice = await getTokenPrice(paymentToken, true);
-    setTokenPrice(tokenPrice);
+    //const tokenPrice = await getTokenPrice(paymentToken, true);
+    await refreshTokenPrice(true);
   }
 
   const providerValue = {

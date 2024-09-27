@@ -86,7 +86,7 @@ export function getTokenAddress(token: PaymentToken): `0x${string}` {
   }
 }
 
-Number.prototype.toFixedDecimal = function (this: number) {
+Number.prototype.toFixedDecimal = function (this: number, decimalsToRight: number = 2) {
   if (this === 0) return this.toString();
   let inputCopy1 = this;
   let numDecimals = 0;
@@ -94,6 +94,5 @@ Number.prototype.toFixedDecimal = function (this: number) {
     numDecimals++;
     inputCopy1 = inputCopy1 * 10;
   }
-  //return inputCopy.toFixed(numDecimals + (numDecimals > 0 ? 2 : 0))
-  return this.toFixed(numDecimals + 2)
+  return this.toFixed(numDecimals + decimalsToRight)
 }

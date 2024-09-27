@@ -8,7 +8,7 @@ declare global {
   }
 
   interface Number {
-    toFixedDecimal: () => string;
+    toFixedDecimal: (decimalsToRight: number = 2) => string;
   }
 }
 

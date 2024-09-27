@@ -5,7 +5,7 @@ import { NAVIGATION_ITEMS } from "@/data/navigation";
 function Navigation() {
   const navItems: NavItemType[] = [{
     id: "1", 
-    name: 'Home', 
+    name: 'Products', 
     href: '/'
   }, ...NAVIGATION_ITEMS];
   return (

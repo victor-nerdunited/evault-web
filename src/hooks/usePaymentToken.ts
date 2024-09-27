@@ -7,6 +7,7 @@ import { getToken } from "@wagmi/core";
 import { useConfig } from "wagmi";
 import { mainnet } from "viem/chains";
 import { getTokenAddress } from "@/utils/priceUtil";
+import { create } from "zustand";
 
 export type ChainToken = {
   address: `0x${string}`
@@ -21,7 +22,7 @@ export type ChainToken = {
 
 export function usePaymentToken() {
   const logger = useLogger("usePaymentToken");
-  const [paymentToken, setPaymentToken] = useState<PaymentToken>(PaymentToken.ELMT);
+  const { paymentToken, setPaymentToken } = usePaymentTokenStore();
   const [chainToken, setChainToken] = useState<ChainToken | null>(null);
   const config = useConfig();
 
@@ -47,3 +48,12 @@ export function usePaymentToken() {
     changePaymentToken,
   }
 }
+
+interface PaymentTokenState {
+  paymentToken: PaymentToken;
+  setPaymentToken: (paymentToken: PaymentToken) => void;
+}
+const usePaymentTokenStore = create<PaymentTokenState>((set) => ({
+  paymentToken: PaymentToken.ELMT,
+  setPaymentToken: (paymentToken: PaymentToken) => set({ paymentToken })
+}));
