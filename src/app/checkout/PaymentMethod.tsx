@@ -404,7 +404,7 @@ const PaymentMethod: FC<Props> = ({
             </label>
           </div> */}
           <RadioGroup value={paymentToken} onValueChange={setPaymentToken}>
-            <Radio value={PaymentToken.ELMT}>{PaymentToken.ELMT} (~20% discount)</Radio>
+            <Radio value={PaymentToken.ELMT}>{PaymentToken.ELMT} (10% discount)</Radio>
             <Radio value={PaymentToken.ETH}>{PaymentToken.ETH}</Radio>
           </RadioGroup>
         </div>

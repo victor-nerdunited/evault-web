@@ -75,6 +75,16 @@ const CheckoutPage = () => {
     logger.log("[checkout/subtotal]", totalNumber);
     return totalNumber;
   }, [cart?.total]);
+  const discount = useMemo(() => {
+    logger.log("[checkout/discount]", paymentToken);
+    return paymentToken === PaymentToken.ELMT
+      ? (-0.1 * subtotal)
+      : 0;
+  }, [subtotal, paymentToken]);
+  const total = useMemo(() => {
+    logger.log("[checkout/total]", subtotal, discount);
+    return subtotal + discount;
+  }, [subtotal, discount]);
 
   const { gasCost } = useEstimateGasFee(subtotal);
 
@@ -112,8 +122,8 @@ const CheckoutPage = () => {
   });
 
   const readyToOrder = useMemo(() => {
-    return account?.address && contactInfo && shippingAddress && (elmtBalance >= subtotal || isDebug);
-  }, [account?.address, contactInfo, shippingAddress, subtotal, elmtBalance, isDebug]);
+    return account?.address && contactInfo && shippingAddress || isDebug;
+  }, [account?.address, contactInfo, shippingAddress, subtotal, isDebug]);
 
   const transactionHash = useMemo(() => txHashToken || txHashNative, [txHashToken, txHashNative]);
   const transactionPending = useMemo(() => txPendingToken && txPendingNative, [txPendingToken, txPendingNative]);
@@ -197,7 +207,7 @@ const CheckoutPage = () => {
 
     if (isDebug) {
       logger.log("[handlePlaceOrder] Debug mode enabled, not actually sending token");
-      router.push(`/order-confirmation?orderid=${cart?.id}&total=${subtotal}&hash=faketxhash${Date.now()}`);
+      router.push(`/order-confirmation?orderid=${cart?.id}&total=${total}&hash=faketxhash${Date.now()}`);
       return;
     }
 
@@ -209,7 +219,7 @@ const CheckoutPage = () => {
 
       await sendToken(
         ELMT_WALLET_ADDRESS, 
-        subtotal,
+        total,
         //BigInt(10 * 10 ** token.data.decimals)
       );
     } catch (error: unknown) {
@@ -249,11 +259,13 @@ const CheckoutPage = () => {
           { key: "token_price", value: tokenPrice },
           { key: "gold_price", value: prices.goldPrice },
           { key: "silver_price", value: prices.silverPrice },
-          { key: "amount", value: subtotal },
+          { key: "subtotal", value: subtotal },
+          { key: "discount", value: discount },
+          { key: "total", value: total },
         ]
       }
       await updateOrder(orderUpdate);
-      router.push(`/order-confirmation?orderid=${cart?.id}&total=${subtotal}&token=${paymentToken}&hash=${transactionHash}`);
+      router.push(`/order-confirmation?orderid=${cart?.id}&total=${total}&token=${paymentToken}&hash=${transactionHash}`);
     } catch (error) {
       logger.error("Error placing order", error);
 
@@ -450,12 +462,36 @@ const CheckoutPage = () => {
               </div> */}
 
               <div className="flex justify-between">
-                <span>Total</span>
+                <span>Subtotal</span>
                 <span className="font-semibold text-slate-900 dark:text-slate-200">
                   {subtotal.toFixedDecimal()} {paymentToken}
                   <div className="text-right">
                     <span className="text-xs text-slate-400">
-                      ~${(subtotal * tokenPrice).toFixedDecimal(0)}
+                      {parseFloat((subtotal * tokenPrice).toFixedDecimal(0)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                    </span>
+                  </div>
+                </span>
+              </div>
+
+              <div className="flex justify-between pt-4">
+                <span>Discount</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-200">
+                  {discount.toFixedDecimal()} {paymentToken}
+                  <div className="text-right">
+                    <span className="text-xs text-slate-400">
+                      {parseFloat((discount * tokenPrice).toFixedDecimal(0)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                    </span>
+                  </div>
+                </span>
+              </div>
+
+              <div className="flex justify-between pt-4">
+                <span>Total</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-200">
+                  {total.toFixedDecimal()} {paymentToken}
+                  <div className="text-right">
+                    <span className="text-xs text-slate-400">
+                      {parseFloat((total * tokenPrice).toFixedDecimal(0)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
                     </span>
                   </div>
                 </span>

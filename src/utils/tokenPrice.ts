@@ -27,7 +27,7 @@ export async function getTokenPrice(token: PaymentToken = PaymentToken.ELMT, for
       address: getTokenAddress(token),
     });
 
-    const price = response.raw.usdPrice * (token === PaymentToken.ELMT ? 1 : 0.9);
+    const price = response.raw.usdPrice;
     cache.set<number>(cacheKey, price, 30); // 30s
     logger.info(`[getTokenPrice] price ${price} token ${token}`, { price })
 

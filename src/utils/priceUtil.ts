@@ -37,13 +37,13 @@ export const getPrice = (prices: MineralPrices, name: string, sku: string, token
 }
 
 export const getPrices = async (forceRefresh: boolean = false): Promise<MineralPrices> => {
-  if (["staging", "local"].includes(process.env.NEXT_PUBLIC_DEPLOY_STAGE ?? "production")) {
-    const factor = 1 // (Math.random() * 100000 % 100);
-    return {
-      goldPrice: 0.005 * factor,
-      silverPrice: 0.001 * factor,
-    };
-  }
+  // if (["staging", "local"].includes(process.env.NEXT_PUBLIC_DEPLOY_STAGE ?? "production")) {
+  //   const factor = 1 // (Math.random() * 100000 % 100);
+  //   return {
+  //     goldPrice: 0.005 * factor,
+  //     silverPrice: 0.001 * factor,
+  //   };
+  // }
 
   const cacheKey = "goldprice";
   const cacheEntry = localStorage.getItem(cacheKey);
@@ -88,7 +88,8 @@ export function getTokenAddress(token: PaymentToken): `0x${string}` {
 
 Number.prototype.toFixedDecimal = function (this: number, decimalsToRight: number = 2) {
   if (this === 0) return this.toString();
-  let inputCopy1 = this;
+  const isNegative = this < 0;
+  let inputCopy1 = this * (isNegative ? -1 : 1);
   let numDecimals = 0;
   while (inputCopy1 < 1) {
     numDecimals++;
