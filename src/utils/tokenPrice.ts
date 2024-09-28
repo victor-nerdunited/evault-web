@@ -33,7 +33,7 @@ export async function getTokenPrice(token: PaymentToken = PaymentToken.ELMT, for
 
     return price;
   } catch (e) {
-    logger.error("[getTokenPrice] failed to get token price", { error: e });
+    logger.error(`[getTokenPrice] failed to get token price ${token}`, { error: e });
     return 0;
   }
 }

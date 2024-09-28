@@ -1,6 +1,6 @@
 import { PaymentToken } from "@/types/payment-token";
 import { useLogger } from "./useLogger";
-import { ELMT_TOKEN_ADDRESS, WETH_TOKEN_ADDRESS } from "@/lib/web3/constants";
+import { ELMT_TOKEN_ADDRESS, GROW_TOKEN_ADDRESS, IZE_TOKEN_ADDRESS, SWITCH_TOKEN_ADDRESS, WETH_TOKEN_ADDRESS } from "@/lib/web3/constants";
 
 const PRICE_MULTIPLIER_GOLD = 1.0;
 const PRICE_MULTIPLIER_SILVER = 1.0;
@@ -22,6 +22,8 @@ export const isSilver = (name: string, sku: string) => {
 
 export const getPrice = (prices: MineralPrices, name: string, sku: string, tokenPrice: number) => {
   logger.log("[priceUtil/getPrice] prices", { prices, tokenPrice });
+  if (tokenPrice === 0) return 0;
+
   let price = 0;
   if (isGold(name, sku)) {
     price = Number(prices.goldPrice);
@@ -37,13 +39,13 @@ export const getPrice = (prices: MineralPrices, name: string, sku: string, token
 }
 
 export const getPrices = async (forceRefresh: boolean = false): Promise<MineralPrices> => {
-  // if (["staging", "local"].includes(process.env.NEXT_PUBLIC_DEPLOY_STAGE ?? "production")) {
-  //   const factor = 1 // (Math.random() * 100000 % 100);
-  //   return {
-  //     goldPrice: 0.005 * factor,
-  //     silverPrice: 0.001 * factor,
-  //   };
-  // }
+  if (["staging", "local"].includes(process.env.NEXT_PUBLIC_DEPLOY_STAGE ?? "production")) {
+    const factor = 1 // (Math.random() * 100000 % 100);
+    return {
+      goldPrice: 0.005 * factor,
+      silverPrice: 0.001 * factor,
+    };
+  }
 
   const cacheKey = "goldprice";
   const cacheEntry = localStorage.getItem(cacheKey);
@@ -80,6 +82,12 @@ export function getTokenAddress(token: PaymentToken): `0x${string}` {
   switch(token) {
     case PaymentToken.ETH:
       return WETH_TOKEN_ADDRESS;
+    case PaymentToken.GROW:
+      return GROW_TOKEN_ADDRESS;
+    case PaymentToken.SWITCH:
+      return SWITCH_TOKEN_ADDRESS;
+    case PaymentToken.IZE:
+      return IZE_TOKEN_ADDRESS;
     case PaymentToken.ELMT:
     default:
       return ELMT_TOKEN_ADDRESS;

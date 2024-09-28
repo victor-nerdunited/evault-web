@@ -39,7 +39,7 @@ const PaymentMethod: FC<Props> = ({
   const { paymentToken, updatePaymentToken } = useCheckout();
   // const config = useConfig();
   //const elmtBalance = useElmtBalance();
-  const { elmtBalance, ethBalance } = useUnitedWallet();
+  const { elmtBalance, ethBalance, izeBalance, growBalance, switchBalance } = useUnitedWallet();
 
   useEffect(() => {
     const fetchPrices = async () => {
@@ -404,8 +404,11 @@ const PaymentMethod: FC<Props> = ({
             </label>
           </div> */}
           <RadioGroup value={paymentToken} onValueChange={setPaymentToken}>
-            <Radio value={PaymentToken.ELMT}>{PaymentToken.ELMT} (10% discount)</Radio>
-            <Radio value={PaymentToken.ETH}>{PaymentToken.ETH}</Radio>
+            <Radio value={PaymentToken.ELMT}>{PaymentToken.ELMT} <span className="text-xs">({elmtBalance} ELMT)</span> (10% discount)</Radio>
+            <Radio value={PaymentToken.ETH}>{PaymentToken.ETH} <span className="text-xs">({ethBalance} ETH)</span></Radio>
+            <Radio value={PaymentToken.IZE}>{PaymentToken.IZE} <span className="text-xs">({izeBalance} IZE)</span></Radio>
+            <Radio value={PaymentToken.GROW}>{PaymentToken.GROW} <span className="text-xs">({growBalance} GROW)</span></Radio>
+            <Radio value={PaymentToken.SWITCH}>{PaymentToken.SWITCH} <span className="text-xs">({switchBalance} SWITCH)</span></Radio>
           </RadioGroup>
         </div>
       </div>

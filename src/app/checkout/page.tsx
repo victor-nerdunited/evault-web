@@ -68,19 +68,22 @@ const CheckoutPage = () => {
   const [pricesChanged, setPricesChanged] = useState(false);
   const router = useRouter();
   //const elmtBalance = useElmtBalance();
-  const { elmtBalance } = useUnitedWallet();
+  const { elmtBalance, ethBalance, growBalance, izeBalance, switchBalance } = useUnitedWallet();
   const [isDebug, setIsDebug] = useState(false);
+
   const subtotal = useMemo(() => {
     const totalNumber = parseFloat(cart?.total ?? "0");
     logger.log("[checkout/subtotal]", totalNumber);
     return totalNumber;
   }, [cart?.total]);
+  
   const discount = useMemo(() => {
     logger.log("[checkout/discount]", paymentToken);
     return paymentToken === PaymentToken.ELMT
       ? (-0.1 * subtotal)
       : 0;
   }, [subtotal, paymentToken]);
+  
   const total = useMemo(() => {
     logger.log("[checkout/total]", subtotal, discount);
     return subtotal + discount;
@@ -121,9 +124,19 @@ const CheckoutPage = () => {
     },
   });
 
+  const walletBalance = useMemo(() => {
+    switch(paymentToken) {
+      case PaymentToken.ELMT: return elmtBalance;
+      case PaymentToken.ETH: return ethBalance;
+      case PaymentToken.GROW: return growBalance;
+      case PaymentToken.IZE: return izeBalance;
+      case PaymentToken.SWITCH: return switchBalance;
+    }
+  }, [paymentToken, elmtBalance, ethBalance, growBalance, izeBalance, switchBalance]);
+
   const readyToOrder = useMemo(() => {
-    return account?.address && contactInfo && shippingAddress || isDebug;
-  }, [account?.address, contactInfo, shippingAddress, subtotal, isDebug]);
+    return (account?.address && contactInfo && shippingAddress && subtotal > 0 && walletBalance >= subtotal) || isDebug;
+  }, [account?.address, contactInfo, shippingAddress, subtotal, isDebug, walletBalance]);
 
   const transactionHash = useMemo(() => txHashToken || txHashNative, [txHashToken, txHashNative]);
   const transactionPending = useMemo(() => txPendingToken && txPendingNative, [txPendingToken, txPendingNative]);
@@ -141,7 +154,7 @@ const CheckoutPage = () => {
     if (paymentToken === PaymentToken.ETH) {
       sendTransaction({ to, value: parseEther(amount.toFixed(18)) });
     } else {
-      const nativeAmount = BigInt(amount * 10 ** chainToken.decimals);
+      const nativeAmount = BigInt(Math.trunc(amount * 10 ** chainToken.decimals));
 
       const simulationResults = await simulateContract(config.getClient(), {
         abi: ELMT_TOKEN_ABI,
@@ -220,7 +233,6 @@ const CheckoutPage = () => {
       await sendToken(
         ELMT_WALLET_ADDRESS, 
         total,
-        //BigInt(10 * 10 ** token.data.decimals)
       );
     } catch (error: unknown) {
       if (error instanceof ContractFunctionExecutionError 
@@ -229,9 +241,6 @@ const CheckoutPage = () => {
       }
       logger.error("Error sending token", error);
       throw error;
-    } finally {
-      setPlacingOrder(false);
-      setSubmittingTransaction(false);
     }
   }
 
@@ -248,38 +257,44 @@ const CheckoutPage = () => {
 
       const orderUpdate: Partial<Order & { set_paid: boolean }> = {
         id: cart.id,
+        currency: paymentToken,
+        currency_symbol: paymentToken,
         status: "on-hold",
-        payment_method: "ELMT",
+        payment_method: paymentToken,
         set_paid: true,
         transaction_id: transactionHash,
         meta_data: [
           ...cart.meta_data,
-          { key: "wallet_address", value: account.address },
-          { key: "transaction_hash", value: transactionHash },
-          { key: "token_price", value: tokenPrice },
+          { key: "discount", value: discount },
           { key: "gold_price", value: prices.goldPrice },
+          { key: "payment_token", value: paymentToken },
           { key: "silver_price", value: prices.silverPrice },
           { key: "subtotal", value: subtotal },
-          { key: "discount", value: discount },
+          { key: "token_price", value: tokenPrice },
           { key: "total", value: total },
-        ]
+          { key: "transaction_hash", value: transactionHash },
+          { key: "wallet_address", value: account.address },
+        ],
+        discount_total: discount.toString(),
+        subtotal: subtotal.toString(),
+        total: total.toString()
       }
       await updateOrder(orderUpdate);
       router.push(`/order-confirmation?orderid=${cart?.id}&total=${total}&token=${paymentToken}&hash=${transactionHash}`);
     } catch (error) {
       logger.error("Error placing order", error);
-
     } finally {
       setPlacingOrder(false);
     }
   }
 
   useEffect(() => {
-    if (transactionPending) return;
-    if (!transactionHash) return;
-    if (transactionStatus !== "success") return;
-
-    submitOrder();
+    if (!transactionPending && !!transactionHash && transactionStatus === "success") {
+      submitOrder();
+    } else if (transactionError) {
+      setPlacingOrder(false);
+      setSubmittingTransaction(false);
+    }
   }, [transactionHash, transactionStatus, transactionPending, transactionError]);
 
   const handleScrollToEl = (id: string) => {
@@ -464,10 +479,10 @@ const CheckoutPage = () => {
               <div className="flex justify-between">
                 <span>Subtotal</span>
                 <span className="font-semibold text-slate-900 dark:text-slate-200">
-                  {subtotal.toFixedDecimal()} {paymentToken}
+                  {subtotal.toFixedDecimal(3)} {paymentToken}
                   <div className="text-right">
                     <span className="text-xs text-slate-400">
-                      {parseFloat((subtotal * tokenPrice).toFixedDecimal(2)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                      ${(subtotal * tokenPrice).toFixedDecimal(2)}
                     </span>
                   </div>
                 </span>
@@ -476,10 +491,10 @@ const CheckoutPage = () => {
               <div className="flex justify-between pt-4">
                 <span>Discount</span>
                 <span className="font-semibold text-slate-900 dark:text-slate-200">
-                  {discount.toFixedDecimal()} {paymentToken}
+                  {discount.toFixedDecimal(3)} {paymentToken}
                   <div className="text-right">
                     <span className="text-xs text-slate-400">
-                      {parseFloat((discount * tokenPrice).toFixedDecimal(2)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                      -${(discount * tokenPrice * -1).toFixedDecimal(2)}
                     </span>
                   </div>
                 </span>
@@ -488,10 +503,10 @@ const CheckoutPage = () => {
               <div className="flex justify-between pt-4">
                 <span>Total</span>
                 <span className="font-semibold text-slate-900 dark:text-slate-200">
-                  {total.toFixedDecimal()} {paymentToken}
+                  {total.toFixedDecimal(3)} {paymentToken}
                   <div className="text-right">
                     <span className="text-xs text-slate-400">
-                      {parseFloat((total * tokenPrice).toFixedDecimal(2)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                      ${(total * tokenPrice).toFixedDecimal(2)}
                     </span>
                   </div>
                 </span>
@@ -518,7 +533,7 @@ const CheckoutPage = () => {
                   {gasCost.toFixedDecimal()} ETH
                   <div className="text-right">
                     <span className="text-xs text-slate-400">
-                      ~${(gasCost * ethTokenPrice).toFixedDecimal()}
+                      ~${(gasCost * ethTokenPrice).toFixedDecimal(2)}
                     </span>
                   </div>
                 </span>

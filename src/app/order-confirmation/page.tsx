@@ -51,7 +51,7 @@ const OrderConfirmation = async () => {
               <div className="flex justify-between text-slate-900 dark:text-slate-200 text-base pt-4">
                 <span className="font-semibold">Order total</span>
                 <span>
-                  {Number(searchParams.get("total")).toFixedDecimal()} {searchParams.get("token")}
+                  {Number(searchParams.get("total")).toFixedDecimal(3)} {searchParams.get("token")}
                 </span>
               </div>
               <div className="flex justify-between text-slate-900 dark:text-slate-200 text-base pt-4">

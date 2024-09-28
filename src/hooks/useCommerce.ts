@@ -54,17 +54,23 @@ class CommerceApi {
   async updateCartPricesAsync(order: Order, paymentToken: PaymentToken): Promise<Order> {
     const prices = await getPrices();
     const tokenPrice = await getTokenPrice(paymentToken);
-    const _subtotal = order.line_items?.reduce((acc, item) => {
-      if (item.quantity === 0) return acc;
+    if (order.line_items) {
+      const _subtotal = order.line_items?.reduce((acc, item) => {
+        if (item.quantity === 0) return acc;
 
-      const price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice);
-      item.price = price;
-      item.total = (price * item.quantity).toString();
-      item.subtotal = item.total;
-      return acc + (price * item.quantity);
-    }, 0) ?? 0;
-    order.subtotal = _subtotal.toFixedDecimal();
-    order.total = _subtotal.toFixedDecimal();
+        const price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice);
+        item.price = price;
+        item.total = (price * item.quantity).toString();
+        item.subtotal = item.total;
+        return acc + (price * item.quantity);
+      }, 0) ?? 0;
+      order.subtotal = _subtotal.toFixedDecimal(6);
+      if (order.discount_total) {
+        order.total = (parseFloat(order.discount_total) + _subtotal).toFixedDecimal(6);
+      } else {
+        order.total = _subtotal.toFixedDecimal(6);
+      }
+    }
     return order;
   }
 }

@@ -148,6 +148,8 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     removeCookie('orderId');
     dispatchCart(null as unknown as Order);
+    dispatchContactInfo(null as unknown as IContactInfo);
+    dispatchShippingAddress(null as unknown as IShippingAddress);
   }
 
   const createOrder = async (): Promise<Order> => {
@@ -174,6 +176,16 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const updateOrder = async(order: Partial<Order>): Promise<void> => {
+    order.currency = paymentToken;
+    order.currency_symbol = paymentToken;
+    if (!order.line_items) {
+      order.line_items = cart.line_items.map(x => ({
+        id: x.id,
+        sku: x.sku,
+        name: x.name,
+        quantity: x.quantity
+      } as LineItem))
+    };
     const result = await commerceLayer!.updateOrder(order, paymentToken);
     result && dispatchCart(result);
   }
