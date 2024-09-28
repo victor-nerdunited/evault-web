@@ -7,6 +7,12 @@ declare global {
     ethereum: ethers.providers.Web3Provider;
   }
 
+  namespace NodeJS {
+    interface ProcessEnv {
+      NEXT_PUBLIC_ELMT_WALLET_ADDRESS: `0x${string}`
+    }
+  }
+
   interface Number {
     toFixedDecimal: (decimalsToRight: number = 2) => string;
   }

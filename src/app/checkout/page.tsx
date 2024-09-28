@@ -11,7 +11,7 @@ import Link from "next/link";
 import { useCheckout, useCheckoutDispatch } from "@/lib/CheckoutProvider";
 import ShippingAddress from "./ShippingAddress";
 import { useAccount, useAccountEffect, useConfig, useSendTransaction, useWriteContract } from "wagmi";
-import { ELMT_TOKEN_ABI, ELMT_TOKEN_ADDRESS, ELMT_WALLET_ADDRESS } from "@/lib/web3/constants";
+import { ELMT_TOKEN_ABI, ELMT_TOKEN_ADDRESS } from "@/lib/web3/constants";
 import { Order, useCommerce } from "@/hooks/useCommerce";
 import { getPrices, isGold, isSilver } from "@/utils/priceUtil";
 import { usePrices } from "@/hooks/usePrices";
@@ -231,7 +231,7 @@ const CheckoutPage = () => {
       setSubmittingTransaction(true);
 
       await sendToken(
-        ELMT_WALLET_ADDRESS, 
+        process.env.NEXT_PUBLIC_ELMT_WALLET_ADDRESS,
         total,
       );
     } catch (error: unknown) {

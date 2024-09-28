@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useConnectors, useEstimateFeesPerGas, usePublicClient, useConfig } from "wagmi";
 import { estimateGas } from "@wagmi/core";
 import * as ethers from "ethers";
-import { ELMT_TOKEN_ABI, ELMT_TOKEN_ADDRESS, ELMT_WALLET_ADDRESS } from "@/lib/web3/constants";
+import { ELMT_TOKEN_ABI, ELMT_TOKEN_ADDRESS } from "@/lib/web3/constants";
 import { useCheckout } from "@/lib/CheckoutProvider";
 import { PaymentToken } from "@/types/payment-token";
 import { mainnet } from "viem/chains";
@@ -27,7 +27,7 @@ export const useEstimateGasFee = (subtotal: number) => {
             account: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
             chainId: mainnet.id,
             connector: connectors.at(0),
-            to: ELMT_WALLET_ADDRESS,
+            to: process.env.NEXT_PUBLIC_ELMT_WALLET_ADDRESS,
             value: ethers.parseEther(subtotal.toFixedDecimal())
           });
           const gasFloat = parseFloat(ethers.formatEther(gas))
@@ -42,7 +42,7 @@ export const useEstimateGasFee = (subtotal: number) => {
           address: ELMT_TOKEN_ADDRESS,
           abi: ELMT_TOKEN_ABI,
           functionName: 'transfer',
-          args: [ELMT_WALLET_ADDRESS, BigInt(Math.trunc(subtotal) * 10 ** 8)],
+          args: [process.env.NEXT_PUBLIC_ELMT_WALLET_ADDRESS, BigInt(Math.trunc(subtotal) * 10 ** 8)],
           account: ELMT_TOKEN_ADDRESS //account.address
         })
         const maxFeePerGas = estimatedFees.data.maxFeePerGas!;

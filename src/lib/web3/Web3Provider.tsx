@@ -23,7 +23,7 @@ const connectors = connectorsForWallets(
   [
     {
       groupName: 'Recommended',
-      wallets: [metaMaskWallet, coinbaseWallet, rainbowWallet, uniswapWallet],
+      wallets: [metaMaskWallet, uniswapWallet, rainbowWallet],
     },
   ],
   {
@@ -46,12 +46,18 @@ const connectors = connectorsForWallets(
 //     [mainnet.id]: http('https://cloudflare-eth.com'),
 //   }
 // });
+
+const rpcNode = Math.trunc(Math.random() * 10) % 2 === 0 
+  ? 'https://site1.moralis-nodes.com/eth/9d73272ea2ed481b857ffc729a5e127c'
+  : 'https://site2.moralis-nodes.com/eth/9d73272ea2ed481b857ffc729a5e127c';
+
 const config = createConfig({
   connectors,
   chains: [mainnet],
   ssr: true, // If your dApp uses server side rendering (SSR)
   transports: {
-    [mainnet.id]: http('https://cloudflare-eth.com'),
+    //[mainnet.id]: http('https://cloudflare-eth.com'),
+    [mainnet.id]: http(rpcNode),
   }
 });
 
