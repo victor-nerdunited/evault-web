@@ -40,6 +40,7 @@ class CommerceApi {
   }
 
   async updateOrder(order: Partial<Order>, paymentToken: PaymentToken): Promise<Order | null> {
+    await this.updateCartPricesAsync(order as Order, paymentToken);
     const response = await fetch(this.baseUrl + "/orders/" + order.id, { body: JSON.stringify(order), method: "PUT" });
     if (response.ok) {
       const order = await response.json();
@@ -50,16 +51,21 @@ class CommerceApi {
     }
   }
 
-  async updateCartPricesAsync(cart: Order, paymentToken: PaymentToken): Promise<Order> {
+  async updateCartPricesAsync(order: Order, paymentToken: PaymentToken): Promise<Order> {
     const prices = await getPrices();
     const tokenPrice = await getTokenPrice(paymentToken);
-    const _subtotal = cart.line_items?.reduce((acc, item) => {
+    const _subtotal = order.line_items?.reduce((acc, item) => {
+      if (item.quantity === 0) return acc;
+
       const price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice);
       item.price = price;
-      return acc + price * item.quantity;
+      item.total = (price * item.quantity).toString();
+      item.subtotal = item.total;
+      return acc + (price * item.quantity);
     }, 0) ?? 0;
-    cart.total = _subtotal.toFixedDecimal();
-    return cart;
+    order.subtotal = _subtotal.toFixedDecimal();
+    order.total = _subtotal.toFixedDecimal();
+    return order;
   }
 }
 

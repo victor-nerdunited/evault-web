@@ -34,8 +34,6 @@ const ProductCard: FC<ProductCardProps> = ({
   data,
   isLiked,
 }) => {
-  const commerceLayer = useCommerce()!;
-  //const price = data.prices?.[0].amount_float;
   const {
     description,
     id,
@@ -43,9 +41,6 @@ const ProductCard: FC<ProductCardProps> = ({
     attributes,
     name,
     price,
-    // rating,
-    // numberOfReviews,
-    // sizes,
     sku,
   } = data;
   const priceNumber = parseFloat(price);
@@ -55,7 +50,7 @@ const ProductCard: FC<ProductCardProps> = ({
   const [variantActive, setVariantActive] = useState(0);
   const [showModalQuickView, setShowModalQuickView] = useState(false);
   const router = useRouter();
-  const { cart, paymentToken, tokenPrice, createOrder, updateOrder } = useCheckout();
+  const { cart, paymentToken, addItem } = useCheckout();
   const { dispatchCart } = useCheckoutDispatch();
   //const [price, setPrice] = useState<number>(0);
   const [updatingCart, setUpdatingCart] = useState<boolean>(false);
@@ -86,46 +81,7 @@ const ProductCard: FC<ProductCardProps> = ({
 
     setUpdatingCart(true);
     try {
-      const orderUpdate: Partial<Order> = {
-        line_items: [],
-        meta_data: [
-          { key: "token_price", value: tokenPrice },
-          { key: "gold_price", value: prices.goldPrice },
-          { key: "silver_price", value: prices.silverPrice }
-        ]
-      };
-      if (!cart) {
-        const result = await createOrder();
-        orderUpdate.id = result.id;
-      } else {
-        orderUpdate.id = cart.id;
-        orderUpdate.line_items = cart.line_items.map(x => {
-          return {
-            id: x.id,
-            quantity: x.quantity,
-            sku: x.sku,
-          };
-        }) as LineItem[];
-      }
-
-      const lineItem = orderUpdate.line_items!.find(x => x.sku === data.sku);
-      if (lineItem) {
-        // check max quantity able to add
-        if (!isNaN(maxPurchaseQuantity) && maxPurchaseQuantity <= lineItem.quantity) return;
-
-        lineItem.quantity++;
-      } else {
-        const newLineItem: Partial<LineItem> = {
-          product_id: id,
-          quantity: 1,
-          meta_data: [
-            { key: "price", value: price.toString() } as MetaDatum,
-            { key: "max_purchase_quantity", value: maxPurchaseQuantity.toString() } as MetaDatum
-          ]
-        }
-        orderUpdate.line_items!.push(newLineItem as LineItem);
-      }
-      await updateOrder(orderUpdate);
+      await addItem(data);
     } catch (error) {
       console.error("[ProductCard] error", error);
     } finally {

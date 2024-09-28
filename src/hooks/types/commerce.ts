@@ -12,6 +12,7 @@ export type Order = {
   shipping_total:       string;
   shipping_tax:         string;
   cart_tax:             string;
+  subtotal:             string;
   total:                string;
   total_tax:            string;
   customer_id:          number;

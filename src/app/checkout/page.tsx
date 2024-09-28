@@ -467,7 +467,7 @@ const CheckoutPage = () => {
                   {subtotal.toFixedDecimal()} {paymentToken}
                   <div className="text-right">
                     <span className="text-xs text-slate-400">
-                      {parseFloat((subtotal * tokenPrice).toFixedDecimal(0)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                      {parseFloat((subtotal * tokenPrice).toFixedDecimal(2)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
                     </span>
                   </div>
                 </span>
@@ -479,7 +479,7 @@ const CheckoutPage = () => {
                   {discount.toFixedDecimal()} {paymentToken}
                   <div className="text-right">
                     <span className="text-xs text-slate-400">
-                      {parseFloat((discount * tokenPrice).toFixedDecimal(0)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                      {parseFloat((discount * tokenPrice).toFixedDecimal(2)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
                     </span>
                   </div>
                 </span>
@@ -491,7 +491,7 @@ const CheckoutPage = () => {
                   {total.toFixedDecimal()} {paymentToken}
                   <div className="text-right">
                     <span className="text-xs text-slate-400">
-                      {parseFloat((total * tokenPrice).toFixedDecimal(0)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                      {parseFloat((total * tokenPrice).toFixedDecimal(2)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
                     </span>
                   </div>
                 </span>

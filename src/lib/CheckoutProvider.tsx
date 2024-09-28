@@ -4,13 +4,10 @@ import { createContext, Dispatch, useContext, useEffect, useReducer, useState } 
 
 import { Order, useCommerce } from '@/hooks/useCommerce';
 import { getCookie, removeCookie, setCookie } from 'typescript-cookie';
-import { LineItem } from '@/hooks/types/commerce';
+import { LineItem, MetaDatum, Product } from '@/hooks/types/commerce';
 import { usePrices } from '@/hooks/usePrices';
-import { getPrice, getPrices, MineralPrices } from '@/utils/priceUtil';
-//import { usePaymentToken } from '@/hooks/usePaymentToken';
 import { useLogger } from '@/utils/useLogger';
 import { PaymentToken } from '@/types/payment-token';
-import { getTokenPrice } from '@/utils/tokenPrice';
 import { ChainToken, usePaymentToken } from '@/hooks/usePaymentToken';
 import { useTokenPrice } from '@/hooks/useTokenprice';
 
@@ -45,6 +42,7 @@ interface CheckoutContextType {
   chainToken: ChainToken | null;
   tokenPrice: number;
 
+  addItem: (product: Product) => Promise<void>;
   clearOrder: () => void;
   createOrder: () => Promise<Order>;
   removeItem: (itemId: number) => Promise<void>;
@@ -54,15 +52,6 @@ interface CheckoutContextType {
   updateTokenPrice: () => Promise<void>;
 }
 
-// enum CartActionType {
-//   UpdateCart = 'initialized'
-// }
-
-// interface CartAction {
-//   type: CartActionType;
-//   cart: Cart;
-// }
-
 const CheckoutContext = createContext<CheckoutContextType>({
   cart: null,
   contactInfo: null,
@@ -71,6 +60,7 @@ const CheckoutContext = createContext<CheckoutContextType>({
   chainToken: null,
   tokenPrice: 0,
 
+  addItem: (product: Product) => Promise.resolve(),
   clearOrder: () => {},
   createOrder: (): Promise<Order> => Promise.resolve({} as Order),
   removeItem: () => Promise.resolve(),
@@ -173,21 +163,66 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
     const lineIndex = cart.line_items.findIndex(x => x.id === itemId);
     if (lineIndex > -1) {
-      //orderUpdate.line_items![lineIndex].quantity = 0;
       orderUpdate.line_items!.push({
         id: cart.line_items[lineIndex].id,
+        name: cart.line_items[lineIndex].name,
+        sku: cart.line_items[lineIndex].sku,
         quantity: 0
       });
     }
-    // await commerceLayer.line_items.delete(itemId);
-    // const order = await commerceLayer.orders.retrieve(cart.id, {include: ["line_items", "line_items.sku"]});
-    const order = await commerceLayer!.updateOrder(orderUpdate as Partial<Order>, paymentToken);
-    dispatchCart(order as unknown as Order);
+    await updateOrder(orderUpdate as Order);
   };
 
   const updateOrder = async(order: Partial<Order>): Promise<void> => {
     const result = await commerceLayer!.updateOrder(order, paymentToken);
     result && dispatchCart(result);
+  }
+
+  const addItem = async (product: Product) => {
+    const maxPurchaseQuantity = parseInt(product.attributes.find(x => x.name === "max_purchase_quantity")?.options[0] ?? "");
+
+    const orderUpdate: Partial<Order> = {
+      line_items: [],
+      meta_data: [
+        { key: "token_price", value: tokenPrice },
+        { key: "gold_price", value: prices.goldPrice },
+        { key: "silver_price", value: prices.silverPrice }
+      ]
+    };
+    if (!cart) {
+      const result = await createOrder();
+      orderUpdate.id = result.id;
+    } else {
+      orderUpdate.id = cart.id;
+      orderUpdate.line_items = cart.line_items.map(x => {
+        return {
+          id: x.id,
+          quantity: x.quantity,
+          sku: x.sku,
+        };
+      }) as LineItem[];
+    }
+
+    let lineItem: Partial<LineItem> | undefined = orderUpdate.line_items!.find(x => x.sku === product.sku);
+    if (lineItem) {
+      // check max quantity able to add
+      if (!isNaN(maxPurchaseQuantity) && maxPurchaseQuantity <= lineItem.quantity!) return;
+
+      lineItem.quantity!++;
+    } else {
+      lineItem = {
+        product_id: product.id,
+        name: product.name,
+        sku: product.sku,
+        quantity: 1,
+        meta_data: [
+          { key: "price", value: product.price.toString() } as MetaDatum,
+          { key: "max_purchase_quantity", value: maxPurchaseQuantity.toString() } as MetaDatum
+        ]
+      }
+      orderUpdate.line_items!.push(lineItem as LineItem);
+    }
+    await updateOrder(orderUpdate);
   }
 
   const updateQuantity = async (itemId: number, quantity: number) => {
@@ -201,22 +236,15 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       line_items: cart.line_items.map(x => ({
         id: x.id,
         name: x.name,
-        price: x.price,
         quantity: x.quantity,
         sku: x.sku,
-        total: x.total
       })) as LineItem[]
     };
-    const lineItem = orderUpdate.line_items!.find(x => x.id === itemId);
+    const lineItem = orderUpdate.line_items?.find(x => x.id === itemId);
     if (lineItem) {
-      const prices = await getPrices();
-      const tokenPrice = await getTokenPrice(paymentToken);
-      lineItem.price = await getPrice(prices, lineItem.name, lineItem.sku, tokenPrice);
       lineItem.quantity = quantity;
-      lineItem.total = (lineItem.price * quantity).toString();
+      await updateOrder(orderUpdate);
     }
-    const order = await commerceLayer.updateOrder(orderUpdate, paymentToken);
-    order && dispatchCart(order);
   };
 
   const updatePaymentToken = async (newPaymentToken: PaymentToken): Promise<void> => {
@@ -238,6 +266,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     chainToken,
     tokenPrice,
 
+    addItem,
     clearOrder,
     createOrder,
     removeItem,
