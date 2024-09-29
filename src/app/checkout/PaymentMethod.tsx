@@ -372,7 +372,7 @@ const PaymentMethod: FC<Props> = ({
     )
   }
 
-  const renderCrypto = (elmtBalance: number) => {
+  const renderCrypto = () => {
     return (
       <div>
       <div className="flex items-start space-x-4 sm:space-x-6">
@@ -488,7 +488,7 @@ const PaymentMethod: FC<Props> = ({
           {/* <div>{renderDebitCredit()}</div>
           <div>{renderInterNetBanking()}</div>
           <div>{renderWallet()}</div> */}
-          <div>{renderCrypto(elmtBalance)}</div>
+          <div>{renderCrypto()}</div>
 
           {/* <div className="flex pt-6">
             <ButtonPrimary

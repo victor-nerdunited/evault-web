@@ -10,8 +10,10 @@ export const useUnitedWallet = () => {
   const [switchBalance, setSwitchBalance] = useState(0);
   const account = useAccount();
 
-  const formatNumber = (balance: UseBalanceReturnType) => 
-    Number((Number(balance?.data?.value) / (10 ** Number(balance?.data?.decimals))).toFixedDecimal())
+  const formatNumber = (balance: UseBalanceReturnType) => {
+    if (!balance?.data) return 0;
+    return Number((Number(balance.data?.value) / (10 ** Number(balance.data?.decimals))).toFixedDecimal());
+  }
   
   const ethTokenBalance = useBalance({ address: account?.address });
   useEffect(() => {
