@@ -21,7 +21,7 @@ export const isSilver = (name: string, sku: string) => {
 }
 
 export const getPrice = (prices: MineralPrices, name: string, sku: string, tokenPrice: number) => {
-  logger.log("[priceUtil/getPrice] prices", { prices, tokenPrice });
+  logger.debug("[priceUtil/getPrice] prices", { prices, tokenPrice });
   if (tokenPrice === 0) return 0;
 
   let price = 0;
@@ -34,7 +34,7 @@ export const getPrice = (prices: MineralPrices, name: string, sku: string, token
   }
 
   const result = Number((price / tokenPrice).toFixedDecimal());
-  logger.log("[priceUtil/getPrice] result", result, price, tokenPrice);
+  logger.debug("[priceUtil/getPrice] result", result, price, tokenPrice);
   return result;
 }
 
@@ -92,16 +92,4 @@ export function getTokenAddress(token: PaymentToken): `0x${string}` {
     default:
       return ELMT_TOKEN_ADDRESS;
   }
-}
-
-Number.prototype.toFixedDecimal = function (this: number, decimalsToRight: number = 2) {
-  if (this === 0) return this.toString();
-  const isNegative = this < 0;
-  let inputCopy1 = this * (isNegative ? -1 : 1);
-  let numDecimals = 0;
-  while (inputCopy1 < 1) {
-    numDecimals++;
-    inputCopy1 = inputCopy1 * 10;
-  }
-  return this.toFixed(numDecimals + decimalsToRight)
 }

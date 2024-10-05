@@ -23,7 +23,7 @@ export const useTokenPrice = () => {
   }, [paymentToken]);
 
   const refreshTokenPrice = async (refresh: boolean = false) => {
-    logger.log("[useTokenPrice] refresh price", { paymentToken, refresh });
+    logger.debug("[useTokenPrice] refresh price", { paymentToken, refresh });
     await setTokenPrice(paymentToken, refresh);
   }
     

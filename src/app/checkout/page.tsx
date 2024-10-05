@@ -73,19 +73,19 @@ const CheckoutPage = () => {
 
   const subtotal = useMemo(() => {
     const totalNumber = parseFloat(cart?.total ?? "0");
-    logger.log("[checkout/subtotal]", totalNumber);
+    logger.debug("[checkout/subtotal]", totalNumber);
     return totalNumber;
   }, [cart?.total]);
   
   const discount = useMemo(() => {
-    logger.log("[checkout/discount]", paymentToken);
+    logger.debug("[checkout/discount]", paymentToken);
     return paymentToken === PaymentToken.ELMT
       ? (-0.1 * subtotal)
       : 0;
   }, [subtotal, paymentToken]);
   
   const total = useMemo(() => {
-    logger.log("[checkout/total]", subtotal, discount);
+    logger.debug("[checkout/total]", subtotal, discount);
     return subtotal + discount;
   }, [subtotal, discount]);
 
@@ -94,7 +94,7 @@ const CheckoutPage = () => {
   const swapUrl = `https://app.uniswap.org/#/swap?inputCurrency=eth&outputCurrency=${ELMT_TOKEN_ADDRESS}&exactAmount=${subtotal}&exactField=output`;
   const [ethTokenPrice, setEthTokenPrice] = useState(0);
   useEffect(() => {
-    logger.log("[checkout/useEffect/chainToken]", chainToken);
+    logger.debug("[checkout/useEffect/chainToken]", chainToken);
 
     (async () => {
       setEthTokenPrice(await getTokenPrice(PaymentToken.ETH, true));
@@ -116,11 +116,11 @@ const CheckoutPage = () => {
 
   useAccountEffect({
     onConnect: async (data) => {
-      logger.log("Connected to Ethereum network", data);
+      logger.debug("Connected to Ethereum network", data);
 
     },
     onDisconnect: () => {
-      logger.log("Disconnected from Ethereum network");
+      logger.debug("Disconnected from Ethereum network");
     },
   });
 
@@ -166,7 +166,7 @@ const CheckoutPage = () => {
         ],
         account: account.address,
       });
-      logger.log("[sendToken] simulationResults", simulationResults);
+      logger.debug("[sendToken] simulationResults", simulationResults);
       if (simulationResults.result) {
         writeContract(simulationResults.request);
       }
@@ -219,7 +219,7 @@ const CheckoutPage = () => {
     if (!account.address) return;
 
     if (isDebug) {
-      logger.log("[handlePlaceOrder] Debug mode enabled, not actually sending token");
+      logger.debug("[handlePlaceOrder] Debug mode enabled, not actually sending token");
       router.push(`/order-confirmation?orderid=${cart?.id}&total=${total}&hash=faketxhash${Date.now()}`);
       return;
     }

@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "upload-maps": "npx @sentry/wizard@latest -i sourcemaps --saas"
   },
   "dependencies": {
     "@getbrevo/brevo": "^2.2.0",
@@ -18,6 +19,8 @@
     "@nextui-org/system": "^2.2.6",
     "@nextui-org/theme": "^2.2.11",
     "@rainbow-me/rainbowkit": "^2.1.6",
+    "@sentry/nextjs": "8",
+    "@sentry/react": "^8.33.1",
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/typography": "^0.5.13",
@@ -30,11 +33,11 @@
     "ethers": "^6.13.2",
     "framer-motion": "^11.5.6",
     "highlight.run": "^9.3.3",
-    "loglevel": "^1.9.2",
     "mixpanel-browser": "^2.55.1",
     "moralis": "^2.27.2",
     "next": "^14.2.3",
     "node-cache": "^5.1.2",
+    "pino": "^9.4.0",
     "rc-slider": "^10.6.2",
     "react": "18.3.1",
     "react-device-detect": "^2.2.3",

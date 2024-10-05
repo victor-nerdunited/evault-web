@@ -29,12 +29,12 @@ const CartPage = () => {
   
   // const [subtotal, setSubtotal] = useState(0);
   // useEffect(() => {
-  //   logger.log("[cart] cart", cart);
+  //   logger.debug("[cart] cart", cart);
   //   if (!cart) return;
 
   //   const _subtotal = cart.line_items?.reduce((acc, item) => {
   //     const price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice);
-  //     logger.log("[cart] price", price);
+  //     logger.debug("[cart] price", price);
   //     return acc + price * item.quantity;
   //   }, 0) ?? 0;
   //   setSubtotal(_subtotal);
@@ -42,7 +42,7 @@ const CartPage = () => {
   
   const subtotal = useMemo(() => {
     const totalNumber = parseFloat(cart?.total ?? "0");
-    logger.log("[checkout/subtotal]", totalNumber);
+    logger.debug("[checkout/subtotal]", totalNumber);
     return totalNumber;
   }, [cart?.total]);
   const { gasCost } = useEstimateGasFee(subtotal);

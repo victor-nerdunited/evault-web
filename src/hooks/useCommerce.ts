@@ -1,8 +1,7 @@
 "use client";
 
-import { Logger } from "loglevel";
 import { Order, Product } from "./types/commerce";
-import { useLogger } from "@/utils/useLogger";
+import { Logger, useLogger } from "@/utils/useLogger";
 import { getPrice, getPrices } from "@/utils/priceUtil";
 import { getTokenPrice } from "@/utils/tokenPrice";
 import { PaymentToken } from "@/types/payment-token";

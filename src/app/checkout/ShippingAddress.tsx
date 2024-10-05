@@ -115,11 +115,11 @@ const ShippingAddress: FC<Props> = ({
     orderUpdate.shipping!.phone = contactInfo?.phone ?? "";
     await updateOrder(orderUpdate);
 
-    logger.log("[addOrderAddresses] added billing/shipping address to order", orderUpdate);
+    logger.debug("[addOrderAddresses] added billing/shipping address to order", orderUpdate);
   }
 
   const onError: SubmitErrorHandler<IShippingAddress> = (errors) => {
-    logger.log(errors);
+    logger.debug(errors);
   };
   
   const renderShippingAddress = () => {

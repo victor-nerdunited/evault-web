@@ -10,6 +10,7 @@ import { Web3Provider } from "@/lib/web3/Web3Provider";
 import { CheckoutProvider } from "@/lib/CheckoutProvider";
 import { PriceWarning } from "@/components/PriceWarning";
 import { NextUIProvider } from "@nextui-org/react";
+import "@/lib/extensions";
 
 const poppins = Poppins({
   subsets: ["latin"],

@@ -49,7 +49,7 @@ export const useEstimateGasFee = (subtotal: number) => {
         const gasFloat = parseFloat(ethers.formatEther(gas));
         const feeFloat = parseFloat(ethers.formatEther(maxFeePerGas));
         const gasCost = gasFloat * feeFloat * (10 ** 18);
-        logger.log("[useEstimateGasFee] gas estimate", gasCost, gasFloat, feeFloat);
+        logger.debug("[useEstimateGasFee] gas estimate", gasCost, gasFloat, feeFloat);
         setGasCost(gasCost * 1.5);  // show higher estimate
       }
     }

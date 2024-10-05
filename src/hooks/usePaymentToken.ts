@@ -38,7 +38,7 @@ export function usePaymentToken() {
   }, [paymentToken]);
 
   const changePaymentToken = (newPaymentToken: PaymentToken) => {
-    logger.log("[usePaymentToken] token changed", { paymentToken, newPaymentToken });
+    logger.debug("[usePaymentToken] token changed", { paymentToken, newPaymentToken });
     setPaymentToken(newPaymentToken);
   }
 

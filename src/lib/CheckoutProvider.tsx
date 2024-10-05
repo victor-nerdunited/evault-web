@@ -96,10 +96,10 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     if (!cart || !commerceLayer) return;
-    logger.log("[CheckoutProvider/useEffect] updating cart total", { tokenPrice, prices });
+    logger.debug("[CheckoutProvider/useEffect] updating cart total", { tokenPrice, prices });
 
     commerceLayer.updateCartPricesAsync(cart, paymentToken).then((order) => {
-      logger.log("[CheckoutProvider/useEffect] cart total", cart.total);
+      logger.debug("[CheckoutProvider/useEffect] cart total", cart.total);
       dispatchCart(JSON.parse(JSON.stringify(order)));
     });
   }, [prices, tokenPrice, paymentToken]);
