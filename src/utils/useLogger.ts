@@ -171,7 +171,9 @@ export const useLogger = (name: string, level?: "trace" | "debug" | "info" | "wa
   logger.error = replaceLogFn(logger.error.bind(logger), true, "error");
   logger.warn = replaceLogFn(logger.warn.bind(logger), true, "warn");
   logger.info = replaceLogFn(logger.info.bind(logger), false, "info");
-  logger.debug = replaceLogFn(logger.debug.bind(logger), false, "debug");
+  if (process.env.NODE_ENV !== "production") {
+    logger.debug = replaceLogFn(logger.debug.bind(logger), false, "debug");
+  }
   
   return logger;
 }

@@ -104,13 +104,6 @@ const CheckoutPage = () => {
   useEffect(() => {
     const isDebug = new URLSearchParams(window.location.search).get("debug") !== null;
     setIsDebug(isDebug);
-
-    logger.info("some info message", { ok: true });
-    try {
-      throw new Error("test error");
-    } catch (e) {
-      logger.error(e, "something happened 123");
-    }
   }, []);
 
   useEffect(() => {
