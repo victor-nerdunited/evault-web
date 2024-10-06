@@ -36,14 +36,7 @@ const CheckoutPage = () => {
     "ContactInfo" | "ShippingAddress" | "PaymentMethod"
   >("ContactInfo");
 
-  //const [contactInfo, setContactInfo] = useState<IContactFormInputs | null>(null);
-  //const [shippingAddress, setShippingAddress] = useState<IShippingAddress | null>(null);
-  // const [cart, setCart] = useState<Cart | null>(null);
   const { cart, contactInfo, shippingAddress, tokenPrice, paymentToken, chainToken, removeItem, updateOrder, updateQuantity, updateTokenPrice } = useCheckout()!;
-
-  const { dispatchCart } = useCheckoutDispatch()!;
-  const commerceLayer = useCommerce()!;
-  //const [checkoutTokenId, setCheckoutTokenId] = useState<string | null>(null);
   const account = useAccount();
   const { 
     data: txHashNative, 
@@ -60,14 +53,11 @@ const CheckoutPage = () => {
   } = useWriteContract();
   
   const config = useConfig();
-  //const token = useBalance({ address: account?.address, token: ELMT_TOKEN_ADDRESS });
   const { prices, refreshPrices } = usePrices();
   const [placingOrder, setPlacingOrder] = useState(false);
   const [submittingTransaction, setSubmittingTransaction] = useState(false);
-  //const [subtotal, setSubtotal] = useState(0);
   const [pricesChanged, setPricesChanged] = useState(false);
   const router = useRouter();
-  //const elmtBalance = useElmtBalance();
   const { elmtBalance, ethBalance, growBalance, izeBalance, switchBalance } = useUnitedWallet();
   const [isDebug, setIsDebug] = useState(false);
 
@@ -91,7 +81,6 @@ const CheckoutPage = () => {
 
   const { gasCost } = useEstimateGasFee(subtotal);
 
-  const swapUrl = `https://app.uniswap.org/#/swap?inputCurrency=eth&outputCurrency=${ELMT_TOKEN_ADDRESS}&exactAmount=${subtotal}&exactField=output`;
   const [ethTokenPrice, setEthTokenPrice] = useState(0);
   useEffect(() => {
     logger.debug("[checkout/useEffect/chainToken]", chainToken);
@@ -107,10 +96,12 @@ const CheckoutPage = () => {
   }, []);
 
   useEffect(() => {
-    if (shippingAddress && contactInfo) {
-      setTabActive("PaymentMethod");
-    } else if (contactInfo) {
-      setTabActive("ShippingAddress")
+    if (contactInfoReady()) {
+      if (shippingAddressReady()) {
+        setTabActive("PaymentMethod");
+      } else {
+        setTabActive("ShippingAddress")
+      }
     }
   }, [contactInfo, shippingAddress]);
 
@@ -134,16 +125,26 @@ const CheckoutPage = () => {
     }
   }, [paymentToken, elmtBalance, ethBalance, growBalance, izeBalance, switchBalance]);
 
+  const contactInfoReady = () => contactInfo
+    && contactInfo.email && contactInfo.firstName 
+    && contactInfo.lastName && contactInfo.phone;
+
+  const shippingAddressReady = () => shippingAddress
+    && shippingAddress.address1 && shippingAddress.city
+    && shippingAddress.state && shippingAddress.country
+    && shippingAddress.postalCode;
+
   const readyToOrder = useMemo(() => {
+
     logger.info("checkout/page/readyToOrder", {
       accountAddress: !!account?.address,
-      contactInfo: !!contactInfo,
-      shippingAddress: !!shippingAddress,
+      contactInfoReady: contactInfoReady(),
+      shippingAddressReady: shippingAddressReady(),
       subtotal,
       walletBalance,
       isDebug
     })
-    return (account?.address && contactInfo && shippingAddress && subtotal > 0 && walletBalance >= subtotal) || isDebug;
+    return (account?.address && contactInfoReady() && shippingAddressReady() && subtotal > 0 && walletBalance >= subtotal) || isDebug;
   }, [account?.address, contactInfo, shippingAddress, subtotal, isDebug, walletBalance]);
 
   const transactionHash = useMemo(() => txHashToken || txHashNative, [txHashToken, txHashNative]);
