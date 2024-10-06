@@ -18,7 +18,7 @@ export async function getTokenPrice(token: PaymentToken = PaymentToken.ELMT, for
     const cacheKey = `tokenprice:${token}`;
     const cacheEntry = cache.get<number>(cacheKey);
     if (cacheEntry && !forceRefresh) {
-      logger.info("[getTokenPrice] returning cached price", { token, cacheEntry });
+      logger.debug("[getTokenPrice] returning cached price", { token, cacheEntry });
       return cacheEntry;
     }
 
@@ -29,11 +29,11 @@ export async function getTokenPrice(token: PaymentToken = PaymentToken.ELMT, for
 
     const price = response.raw.usdPrice;
     cache.set<number>(cacheKey, price, 30); // 30s
-    logger.info(`[getTokenPrice] price ${price} token ${token}`, { price })
+    logger.debug(`[getTokenPrice] price ${price} token ${token}`, { price })
 
     return price;
   } catch (e) {
-    logger.error(`[getTokenPrice] failed to get token price ${token}`, { error: e });
+    logger.error(e, `[getTokenPrice] failed to get token price ${token}`);
     return 0;
   }
 }

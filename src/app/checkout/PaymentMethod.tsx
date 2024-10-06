@@ -49,7 +49,7 @@ const PaymentMethod: FC<Props> = ({
   }, []);
 
   const setPaymentToken = async (value: string) => {
-    logger.info("[PaymentMethod] changing payment token", { value });
+    logger.debug("[PaymentMethod] changing payment token", { value });
     await updatePaymentToken(value as PaymentToken);
   }
 

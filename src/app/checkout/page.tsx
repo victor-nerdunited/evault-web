@@ -104,6 +104,13 @@ const CheckoutPage = () => {
   useEffect(() => {
     const isDebug = new URLSearchParams(window.location.search).get("debug") !== null;
     setIsDebug(isDebug);
+
+    logger.info("some info message", { ok: true });
+    try {
+      throw new Error("test error");
+    } catch (e) {
+      logger.error(e, "something happened 123");
+    }
   }, []);
 
   useEffect(() => {
@@ -135,6 +142,14 @@ const CheckoutPage = () => {
   }, [paymentToken, elmtBalance, ethBalance, growBalance, izeBalance, switchBalance]);
 
   const readyToOrder = useMemo(() => {
+    logger.info("checkout/page/readyToOrder", {
+      accountAddress: !!account?.address,
+      contactInfo: !!contactInfo,
+      shippingAddress: !!shippingAddress,
+      subtotal,
+      walletBalance,
+      isDebug
+    })
     return (account?.address && contactInfo && shippingAddress && subtotal > 0 && walletBalance >= subtotal) || isDebug;
   }, [account?.address, contactInfo, shippingAddress, subtotal, isDebug, walletBalance]);
 
@@ -239,7 +254,7 @@ const CheckoutPage = () => {
         && /user rejected/i.test(error.shortMessage)) {
         return;
       }
-      logger.error("Error sending token", error);
+      logger.error(error, "Error sending token");
       throw error;
     }
   }
@@ -282,7 +297,7 @@ const CheckoutPage = () => {
       await updateOrder(orderUpdate);
       router.push(`/order-confirmation?orderid=${cart?.id}&total=${total}&token=${paymentToken}&hash=${transactionHash}`);
     } catch (error) {
-      logger.error("Error placing order", error);
+      logger.error(error, "Error placing order");
     } finally {
       setPlacingOrder(false);
     }

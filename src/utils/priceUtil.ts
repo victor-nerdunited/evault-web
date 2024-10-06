@@ -5,7 +5,7 @@ import { ELMT_TOKEN_ADDRESS, GROW_TOKEN_ADDRESS, IZE_TOKEN_ADDRESS, SWITCH_TOKEN
 const PRICE_MULTIPLIER_GOLD = 1.0;
 const PRICE_MULTIPLIER_SILVER = 1.0;
 
-const logger = useLogger("mineral-prices", "debug");
+const logger = useLogger("mineral-prices");
 
 export interface MineralPrices {
   goldPrice: number;

@@ -69,7 +69,7 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
       orderUpdate.billing!.email = contactInfo.email;
       await updateOrder(orderUpdate);
     } catch (error) {
-      logger.error("Error creating customer", error);
+      logger.error(error, "Error creating customer");
     }
   };
 
