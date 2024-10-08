@@ -144,8 +144,8 @@ const CheckoutPage = () => {
       walletBalance,
       isDebug
     })
-    return (account?.address && contactInfoReady() && shippingAddressReady() && subtotal > 0 && walletBalance >= subtotal) || isDebug;
-  }, [account?.address, contactInfo, shippingAddress, subtotal, isDebug, walletBalance]);
+    return (account?.address && contactInfoReady() && shippingAddressReady() && total > 0 && walletBalance >= total) || isDebug;
+  }, [account?.address, contactInfo, shippingAddress, total, isDebug, walletBalance]);
 
   const transactionHash = useMemo(() => txHashToken || txHashNative, [txHashToken, txHashNative]);
   const transactionPending = useMemo(() => txPendingToken && txPendingNative, [txPendingToken, txPendingNative]);
