@@ -30,7 +30,7 @@ export const getPrice = (prices: MineralPrices, name: string, sku: string, token
   } else if (isSilver(name, sku)) {
     price = Number(prices.silverPrice);
   } else {
-    throw new Error("[priceUtil/getPrice] Unknown product");
+    return null;
   }
 
   const result = Number((price / tokenPrice).toFixedDecimal());

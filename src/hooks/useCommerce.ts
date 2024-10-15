@@ -32,7 +32,7 @@ class CommerceApi {
     const mineralPrices = await getPrices();
     const tokenPrice = await getTokenPrice(paymentToken);
     await Promise.all(products.map(async (p) => {
-      const price = await getPrice(mineralPrices, p.name, p.sku, tokenPrice);
+      const price = await getPrice(mineralPrices, p.name, p.sku, tokenPrice) ?? parseFloat(p.price);
       p.price = price.toFixedDecimal();
     }));
     return products;
@@ -57,7 +57,7 @@ class CommerceApi {
       const _subtotal = order.line_items?.reduce((acc, item) => {
         if (item.quantity === 0) return acc;
 
-        const price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice);
+        const price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice) ?? item.price;
         item.price = price;
         item.total = (price * item.quantity).toString();
         item.subtotal = item.total;

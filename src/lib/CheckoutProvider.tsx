@@ -10,6 +10,7 @@ import { useLogger } from '@/utils/useLogger';
 import { PaymentToken } from '@/types/payment-token';
 import { ChainToken, usePaymentToken } from '@/hooks/usePaymentToken';
 import { useTokenPrice } from '@/hooks/useTokenprice';
+import { getPrice } from '@/utils/priceUtil';
 
 export interface IContactInfo {
   firstName: string;
@@ -209,6 +210,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       orderUpdate.line_items = cart.line_items.map(x => {
         return {
           id: x.id,
+          price: x.price,
           quantity: x.quantity,
           sku: x.sku,
         };
@@ -223,6 +225,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       lineItem.quantity!++;
     } else {
       lineItem = {
+        price: parseFloat(product.price),
         product_id: product.id,
         name: product.name,
         sku: product.sku,
@@ -248,6 +251,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       line_items: cart.line_items.map(x => ({
         id: x.id,
         name: x.name,
+        price: x.price,
         quantity: x.quantity,
         sku: x.sku,
       })) as LineItem[]
