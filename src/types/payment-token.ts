@@ -4,4 +4,5 @@ export enum PaymentToken {
   GROW = "GROW",
   IZE = "IZE",
   SWITCH = "SWITCH",
+  USDC = "USDC",
 }

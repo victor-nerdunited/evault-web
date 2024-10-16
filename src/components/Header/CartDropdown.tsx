@@ -8,46 +8,28 @@ import {
 } from "@/app/headlessui";
 import Prices from "@/components/Prices";
 import { LineItem } from "@/hooks/types/commerce";
+import { usePaymentToken } from "@/hooks/usePaymentToken";
 import { usePrices } from "@/hooks/usePrices";
 import { useTokenPrice } from "@/hooks/useTokenprice";
 import { useCheckout } from "@/lib/CheckoutProvider";
 //import { Product, PRODUCTS } from "@/data/data";
 import ButtonPrimary from "@/shared/Button/ButtonPrimary";
 import ButtonSecondary from "@/shared/Button/ButtonSecondary";
+import { PaymentToken } from "@/types/payment-token";
 import { MineralPrices } from "@/utils/priceUtil";
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
 
 export default function CartDropdown() {
-  // const [cart, setCart] = useState<Cart | null>(null);
-  // useEffect(() => {
-  //   const fetchCart = async () => {
-  //     const cart = await getCart();
-  //     setCart(cart);
-  //   };
-  //   fetchCart();
-  // }, []);
   const { cart, removeItem } = useCheckout();
-  const { tokenPrice } = useTokenPrice();
-  const { prices } = usePrices();
-
-  // const [subtotal, setSubtotal] = useState(0);
-  // useEffect(() => {
-  //   const _subtotal = cart?.line_items?.reduce((acc, item) => {
-  //     const price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice);
-  //     return acc + price * item.quantity;
-  //   }, 0) ?? 0;
-  //   setSubtotal(_subtotal);
-  // }, [cart]);
   const subtotal = useMemo(() => {
     const totalNumber = parseFloat(cart?.total ?? "0");
     return totalNumber;
   }, [cart?.total]);
+  const { paymentToken } = usePaymentToken();
 
   const renderProduct = (item: LineItem, index: number, close: () => void) => {
-    //const price = item.total_amount_float ?? 0;
-    //let price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice);
     const price = item.price;
     const { name, image } = item;
     return (
@@ -76,7 +58,7 @@ export default function CartDropdown() {
                   </Link>
                 </h3>
               </div>
-              <Prices price={price} className="mt-0.5" />
+              <Prices price={price} className="mt-0.5" paymentToken={paymentToken} />
             </div>
           </div>
           <div className="flex flex-1 items-end justify-between text-sm">
@@ -180,7 +162,7 @@ export default function CartDropdown() {
                           Shipping and taxes calculated at checkout.
                         </span> */}
                       </span>
-                      <span className="">{subtotal.toLocaleString()} ELMT</span>
+                      <span className="">{subtotal.toLocaleString()} {paymentToken}</span>
                     </p>
                     <div className="flex space-x-2 mt-5">
                       <ButtonSecondary

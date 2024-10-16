@@ -58,7 +58,7 @@ const CheckoutPage = () => {
   const [submittingTransaction, setSubmittingTransaction] = useState(false);
   const [pricesChanged, setPricesChanged] = useState(false);
   const router = useRouter();
-  const { elmtBalance, ethBalance, growBalance, izeBalance, switchBalance } = useUnitedWallet();
+  const { elmtBalance, ethBalance, growBalance, izeBalance, switchBalance, usdcBalance } = useUnitedWallet();
   const [isDebug, setIsDebug] = useState(false);
 
   const subtotal = useMemo(() => {
@@ -122,6 +122,7 @@ const CheckoutPage = () => {
       case PaymentToken.GROW: return growBalance;
       case PaymentToken.IZE: return izeBalance;
       case PaymentToken.SWITCH: return switchBalance;
+      case PaymentToken.USDC: return usdcBalance;
     }
   }, [paymentToken, elmtBalance, ethBalance, growBalance, izeBalance, switchBalance]);
 

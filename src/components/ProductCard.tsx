@@ -22,6 +22,7 @@ import { useCommerce } from "@/hooks/useCommerce";
 import { usePrices } from "@/hooks/usePrices";
 import { isCheckoutDisabled } from "@/utils/util";
 import { LineItem, MetaDatum, Order, Product } from "@/hooks/types/commerce";
+import { PaymentToken } from "@/types/payment-token";
 
 export interface ProductCardProps {
   className?: string;
@@ -41,7 +42,7 @@ const ProductCard: FC<ProductCardProps> = ({
     attributes,
     name,
     price,
-    sku,
+    currency: currency,
   } = data;
   const priceNumber = parseFloat(price);
   const image_url = images[0].src;
@@ -123,7 +124,7 @@ const ProductCard: FC<ProductCardProps> = ({
         <div className="h-24 w-20 flex-shrink-0 overflow-hidden rounded-xl">
           <Image
             width={80}
-            height={96}
+            height={80}
             src={image_url || ""}
             alt={name}
             className="absolute object-contain object-center"
@@ -142,7 +143,7 @@ const ProductCard: FC<ProductCardProps> = ({
                   <span className="mx-2 border-s border-slate-200 dark:border-slate-700 h-4"></span>
                 </p>
               </div>
-              <Prices price={priceNumber ?? 0} className="mt-0.5" paymentToken={paymentToken} />
+              <Prices price={priceNumber ?? 0} className="mt-0.5" paymentToken={currency as PaymentToken ?? paymentToken} />
             </div>
           </div>
           <div className="flex flex-1 items-end justify-between text-sm">
@@ -227,11 +228,11 @@ const ProductCard: FC<ProductCardProps> = ({
         <div className="relative flex-shrink-0 rounded-3xl overflow-hidden z-1 group">
           {/* <Link href={"/product-detail"} className="block"> */}
           <NcImage
-            containerClassName="flex aspect-w-11 aspect-h-12 w-full h-0"
+            containerClassName="flex aspect-w-10 aspect-h-10"
+            className="object-cover"
             src={image_url || ""}
-            className="object-contain w-full h-full"
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1200px) 50vw, 40vw"
+            width={310} height={310}
+            sizes="height:310px"
             alt="product"
           />
           {/* </Link> */}
@@ -257,7 +258,7 @@ const ProductCard: FC<ProductCardProps> = ({
           </div>
 
           <div className="flex justify-between items-end ">
-            <Prices price={priceNumber ?? 0} paymentToken={paymentToken} />
+            <Prices price={priceNumber ?? 0} paymentToken={(currency as PaymentToken) ?? paymentToken} />
             {/* <div className="flex items-center mb-0.5">
               <StarIcon className="w-5 h-5 pb-[1px] text-amber-400" />
               <span className="text-sm ms-1 text-slate-500 dark:text-slate-400">

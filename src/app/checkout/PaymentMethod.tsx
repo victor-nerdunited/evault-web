@@ -9,13 +9,10 @@ import Input from "@/shared/Input/Input";
 // import { ConnectKitButton, SIWESession, useSIWE } from "connectkit";
 import ConnectKitButton from "@/lib/web3/ConnectKitButton";
 import { useAccount, useAccountEffect, useBalance, useClient, useConfig, useDisconnect, useEnsAvatar, useEnsName, usePublicClient } from "wagmi";
-import { getBalance } from "@wagmi/core";
-import { getPrices } from "@/utils/priceUtil";
 import { ELMT_TOKEN_ADDRESS } from "@/lib/web3/constants";
 //import { useElmtBalance } from "@/hooks/useElmtBalance";
 import { useUnitedWallet } from "@/hooks/useUnitedWallet";
 import { Radio, RadioGroup } from "@nextui-org/react";
-import { usePaymentToken } from "@/hooks/usePaymentToken";
 import { PaymentToken } from "@/types/payment-token";
 import { useLogger } from "@/utils/useLogger";
 import { useCheckout } from "@/lib/CheckoutProvider";
@@ -35,18 +32,40 @@ const PaymentMethod: FC<Props> = ({
   const [mothodActive, setMethodActive] = useState<
     "Credit-Card" | "Internet-banking" | "Wallet"
   >("Credit-Card");
-  //const { paymentToken, changePaymentToken } = usePaymentToken();
-  const { paymentToken, updatePaymentToken } = useCheckout();
-  // const config = useConfig();
-  //const elmtBalance = useElmtBalance();
-  const { elmtBalance, ethBalance, izeBalance, growBalance, switchBalance } = useUnitedWallet();
+  const { cart, paymentToken, updatePaymentToken } = useCheckout();
+  const { elmtBalance, ethBalance, izeBalance, growBalance, switchBalance, usdcBalance } = useUnitedWallet();
+  const [paymentMethods, setPaymentMethods] = useState<{ token: string, balance: number }[]>([]);
 
   useEffect(() => {
-    const fetchPrices = async () => {
-      const prices = await getPrices();
+    if (!cart) return;
+
+    const paymentMethods = [
+      { token: PaymentToken.ELMT, balance: elmtBalance },
+      { token: PaymentToken.ETH, balance: ethBalance },
+      { token: PaymentToken.IZE, balance: izeBalance },
+      { token: PaymentToken.GROW, balance: growBalance },
+      { token: PaymentToken.SWITCH, balance: switchBalance },
+      { token: PaymentToken.USDC, balance: usdcBalance }
+    ];
+    const allowedCurrencies: string[] = [];
+    for(const currencies of cart.line_items.map(x => x.meta_data.find(y => y.key === "currency"))) {
+      if (!currencies) continue;
+      for(const currency of currencies.value.split(',')) {
+        if (!allowedCurrencies.includes(currency.trim())) {
+          allowedCurrencies.push(currency.trim())
+        }
+      }        
     }
-    fetchPrices();
-  }, []);
+    if (allowedCurrencies.length > 0) {
+      for(let i = 0; i < paymentMethods.length; i++) {
+        if (!allowedCurrencies.includes(paymentMethods[i].token)) {
+          paymentMethods.splice(i--, 1);
+        }
+      }
+    }
+    updatePaymentToken(paymentMethods[0].token);
+    setPaymentMethods(paymentMethods);
+  }, [cart, elmtBalance, ethBalance, izeBalance, growBalance, switchBalance]);
 
   const setPaymentToken = async (value: string) => {
     logger.debug("[PaymentMethod] changing payment token", { value });
@@ -388,27 +407,15 @@ const PaymentMethod: FC<Props> = ({
           <Label className="text-sm mb-2 block">Token</Label>
         </div>
         <div className="flex flex-row">
-          {/* <Radio
-            className="pt-0 mr-3"
-            name="payment-method"
-            id="Wallet"
-            defaultChecked={true}
-            onChange={(e) => setMethodActive(e as any)}
-          />
-          <div className="flex-2">
-            <label
-              htmlFor="Wallet"
-              className="flex items-center space-x-4 sm:space-x-6 "
-            >
-              <p className="font-medium py-3">Element (ELMT)</p>
-            </label>
-          </div> */}
           <RadioGroup value={paymentToken} onValueChange={setPaymentToken}>
-            <Radio value={PaymentToken.ELMT}>{PaymentToken.ELMT} <span className="text-xs">({elmtBalance} ELMT)</span> (10% discount)</Radio>
+            {/* <Radio value={PaymentToken.ELMT}>{PaymentToken.ELMT} <span className="text-xs">({elmtBalance} ELMT)</span> (10% discount)</Radio>
             <Radio value={PaymentToken.ETH}>{PaymentToken.ETH} <span className="text-xs">({ethBalance} ETH)</span></Radio>
             <Radio value={PaymentToken.IZE}>{PaymentToken.IZE} <span className="text-xs">({izeBalance} IZE)</span></Radio>
             <Radio value={PaymentToken.GROW}>{PaymentToken.GROW} <span className="text-xs">({growBalance} GROW)</span></Radio>
-            <Radio value={PaymentToken.SWITCH}>{PaymentToken.SWITCH} <span className="text-xs">({switchBalance} SWITCH)</span></Radio>
+            <Radio value={PaymentToken.SWITCH}>{PaymentToken.SWITCH} <span className="text-xs">({switchBalance} SWITCH)</span></Radio> */}
+            {paymentMethods.map(p => 
+              <Radio value={p.token}>{p.token} <span className="text-xs">({p.balance} {p.token})</span></Radio>
+            )}
           </RadioGroup>
         </div>
       </div>

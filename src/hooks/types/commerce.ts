@@ -170,6 +170,7 @@ export type Product = {
   uagb_comment_info:       number;
   uagb_excerpt:            string;
   _links:                  Links;
+  currency:                string;
 }
 
 export type Attribute = {

@@ -10,7 +10,6 @@ import { useLogger } from '@/utils/useLogger';
 import { PaymentToken } from '@/types/payment-token';
 import { ChainToken, usePaymentToken } from '@/hooks/usePaymentToken';
 import { useTokenPrice } from '@/hooks/useTokenprice';
-import { getPrice } from '@/utils/priceUtil';
 
 export interface IContactInfo {
   firstName: string;
@@ -90,9 +89,6 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const { prices, refreshPrices } = usePrices();
   const { tokenPrice, refreshTokenPrice } = useTokenPrice();
-  //const { paymentToken, changePaymentToken } = usePaymentToken();
-  //const [tokenPrice, setTokenPrice] = useState(0);
-  //const [paymentToken, setPaymentToken] = useState(PaymentToken.ELMT);
   const { paymentToken, chainToken, changePaymentToken } = usePaymentToken();
 
   useEffect(() => {
@@ -118,6 +114,11 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       //const cart = await commerceLayer.orders.retrieve(orderId, {include: ["line_items", "line_items.sku"]});
       const cart = await commerceLayer.getOrder(orderId, paymentToken);
       dispatchCart(cart);
+
+      const orderPaymentToken = cart.meta_data.find(x => x.key === "payment_token")?.value;
+      if (orderPaymentToken) {
+        await updatePaymentToken(orderPaymentToken);
+      }
 
       if (!contactInfo) {
         dispatchContactInfo({
@@ -199,9 +200,14 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       meta_data: [
         { key: "token_price", value: tokenPrice },
         { key: "gold_price", value: prices.goldPrice },
-        { key: "silver_price", value: prices.silverPrice }
+        { key: "silver_price", value: prices.silverPrice },
       ]
     };
+    const currency = product.attributes.find(x => x.name === "currency");
+    if (currency) {
+      await updatePaymentToken(currency.options[0] as PaymentToken);
+      orderUpdate.meta_data!.push({ key: "payment_token", value: currency.options[0] });
+    }
     if (!cart) {
       const result = await createOrder();
       orderUpdate.id = result.id;
@@ -232,8 +238,13 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         quantity: 1,
         meta_data: [
           { key: "price", value: product.price.toString() } as MetaDatum,
-          { key: "max_purchase_quantity", value: maxPurchaseQuantity.toString() } as MetaDatum
         ]
+      }
+      if (maxPurchaseQuantity) {
+        lineItem.meta_data?.push({ key: "max_purchase_quantity", value: maxPurchaseQuantity.toString() });
+      }
+      for(const attribute of product.attributes) {
+        lineItem.meta_data?.push({ key: attribute.name, value: attribute.options.join(",") });
       }
       orderUpdate.line_items!.push(lineItem as LineItem);
     }

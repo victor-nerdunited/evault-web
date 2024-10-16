@@ -1,6 +1,6 @@
 import { PaymentToken } from "@/types/payment-token";
 import { useLogger } from "./useLogger";
-import { ELMT_TOKEN_ADDRESS, GROW_TOKEN_ADDRESS, IZE_TOKEN_ADDRESS, SWITCH_TOKEN_ADDRESS, WETH_TOKEN_ADDRESS } from "@/lib/web3/constants";
+import { ELMT_TOKEN_ADDRESS, GROW_TOKEN_ADDRESS, IZE_TOKEN_ADDRESS, SWITCH_TOKEN_ADDRESS, USDC_TOKEN_ADDRESS, WETH_TOKEN_ADDRESS } from "@/lib/web3/constants";
 
 const PRICE_MULTIPLIER_GOLD = 1.0;
 const PRICE_MULTIPLIER_SILVER = 1.0;
@@ -20,17 +20,15 @@ export const isSilver = (name: string, sku: string) => {
   return /silver/i.test(name ?? "") || /silver/i.test(sku ?? "");
 }
 
-export const getPrice = (prices: MineralPrices, name: string, sku: string, tokenPrice: number) => {
+export const getPrice = (prices: MineralPrices, name: string, sku: string, tokenPrice: number, productPrice: number) => {
   logger.debug("[priceUtil/getPrice] prices", { prices, tokenPrice });
   if (tokenPrice === 0) return 0;
 
-  let price = 0;
+  let price = productPrice;
   if (isGold(name, sku)) {
     price = Number(prices.goldPrice);
   } else if (isSilver(name, sku)) {
     price = Number(prices.silverPrice);
-  } else {
-    return null;
   }
 
   const result = Number((price / tokenPrice).toFixedDecimal());
@@ -88,6 +86,8 @@ export function getTokenAddress(token: PaymentToken): `0x${string}` {
       return SWITCH_TOKEN_ADDRESS;
     case PaymentToken.IZE:
       return IZE_TOKEN_ADDRESS;
+    case PaymentToken.USDC:
+      return USDC_TOKEN_ADDRESS;
     case PaymentToken.ELMT:
     default:
       return ELMT_TOKEN_ADDRESS;

@@ -1,9 +1,10 @@
-import { ELMT_TOKEN_ADDRESS, GROW_TOKEN_ADDRESS, IZE_TOKEN_ADDRESS, SWITCH_TOKEN_ADDRESS } from "@/lib/web3/constants";
+import { ELMT_TOKEN_ADDRESS, GROW_TOKEN_ADDRESS, IZE_TOKEN_ADDRESS, SWITCH_TOKEN_ADDRESS, USDC_TOKEN_ADDRESS } from "@/lib/web3/constants";
 import { useEffect, useState } from "react";
 import { useAccount, useBalance, UseBalanceReturnType } from "wagmi";
 
 export const useUnitedWallet = () => {
   const [ethBalance, setEthBalance] = useState(0);
+  const [usdcBalance, setUsdcBalance] = useState(0);
   const [elmtBalance, setElmtBalance] = useState(0);
   const [growBalance, setGrowBalance] = useState(0);
   const [izeBalance, setIzeBalance] = useState(0);
@@ -19,6 +20,11 @@ export const useUnitedWallet = () => {
   useEffect(() => {
     setEthBalance(formatNumber(ethTokenBalance));
   }, [ethTokenBalance?.data?.value]);
+
+  const usdcTokenBalance = useBalance({ address: account?.address, token: USDC_TOKEN_ADDRESS });
+  useEffect(() => {
+    setUsdcBalance(formatNumber(usdcTokenBalance));
+  }, [usdcTokenBalance?.data?.value]);
 
   const elmtTokenBalance = useBalance({ address: account?.address, token: ELMT_TOKEN_ADDRESS });
   useEffect(() => {
@@ -45,6 +51,7 @@ export const useUnitedWallet = () => {
     elmtBalance,
     growBalance,
     izeBalance,
-    switchBalance
+    switchBalance,
+    usdcBalance,
   }
 };

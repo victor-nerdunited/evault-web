@@ -21,6 +21,10 @@ class CommerceApi {
   async getOrder(orderId: string, paymentToken: PaymentToken): Promise<Order> {
     const response = await fetch(this.baseUrl + "/orders/" + orderId + "?context=edit");
     const order: Order = await response.json();
+    const orderPaymentToken = order.meta_data.find(x => x.key === "payment_token")?.value;
+    if (orderPaymentToken) {
+      paymentToken = orderPaymentToken;
+    }
     return await this.updateCartPricesAsync(order, paymentToken);
   }
 
@@ -30,9 +34,15 @@ class CommerceApi {
 
     const products: Product[] = await response.json();
     const mineralPrices = await getPrices();
-    const tokenPrice = await getTokenPrice(paymentToken);
+    let tokenPrice = await getTokenPrice(paymentToken);
     await Promise.all(products.map(async (p) => {
-      const price = await getPrice(mineralPrices, p.name, p.sku, tokenPrice) ?? parseFloat(p.price);
+      const currencyMeta = p.attributes.find(x => x.name === "currency");
+      if (currencyMeta) {
+        const paymentToken = currencyMeta.options[0] as PaymentToken ?? PaymentToken.ELMT;
+        tokenPrice = await getTokenPrice(paymentToken);
+        p.currency = paymentToken;
+      }
+      const price = await getPrice(mineralPrices, p.name, p.sku, tokenPrice, parseFloat(p.price));
       p.price = price.toFixedDecimal();
     }));
     return products;
@@ -57,7 +67,7 @@ class CommerceApi {
       const _subtotal = order.line_items?.reduce((acc, item) => {
         if (item.quantity === 0) return acc;
 
-        const price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice) ?? item.price;
+        const price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice, item.price);
         item.price = price;
         item.total = (price * item.quantity).toString();
         item.subtotal = item.total;
