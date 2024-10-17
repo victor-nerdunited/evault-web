@@ -46,7 +46,7 @@ interface CheckoutContextType {
   clearOrder: () => void;
   createOrder: () => Promise<Order>;
   removeItem: (itemId: number) => Promise<void>;
-  updateOrder: (order: Partial<Order>) => Promise<void>;
+  updateOrder: (order: Partial<Order>, paymentToken: PaymentToken) => Promise<void>;
   updateQuantity: (itemId: number, quantity: number) => Promise<void>;
   updatePaymentToken: (newPaymentToken: PaymentToken) => Promise<void>;
   updateTokenPrice: () => Promise<void>;
@@ -174,10 +174,10 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         quantity: 0
       });
     }
-    await updateOrder(orderUpdate as Order);
+    await updateOrder(orderUpdate as Order, paymentToken);
   };
 
-  const updateOrder = async(order: Partial<Order>): Promise<void> => {
+  const updateOrder = async(order: Partial<Order>, paymentToken: PaymentToken): Promise<void> => {
     order.currency = paymentToken;
     order.currency_symbol = paymentToken;
     if (!order.line_items) {
@@ -204,9 +204,11 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ]
     };
     const currency = product.attributes.find(x => x.name === "currency");
+    let newPaymentToken = paymentToken;
     if (currency) {
-      await updatePaymentToken(currency.options[0] as PaymentToken);
-      orderUpdate.meta_data!.push({ key: "payment_token", value: currency.options[0] });
+      newPaymentToken = currency.options[0] as PaymentToken;
+      await updatePaymentToken(newPaymentToken);
+      orderUpdate.meta_data!.push({ key: "payment_token", value: newPaymentToken });
     }
     if (!cart) {
       const result = await createOrder();
@@ -248,7 +250,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
       orderUpdate.line_items!.push(lineItem as LineItem);
     }
-    await updateOrder(orderUpdate);
+    await updateOrder(orderUpdate, newPaymentToken);
   }
 
   const updateQuantity = async (itemId: number, quantity: number) => {
@@ -270,7 +272,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const lineItem = orderUpdate.line_items?.find(x => x.id === itemId);
     if (lineItem) {
       lineItem.quantity = quantity;
-      await updateOrder(orderUpdate);
+      await updateOrder(orderUpdate, paymentToken);
     }
   };
 

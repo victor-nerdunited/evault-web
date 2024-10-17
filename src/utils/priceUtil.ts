@@ -1,6 +1,7 @@
 import { PaymentToken } from "@/types/payment-token";
 import { useLogger } from "./useLogger";
 import { ELMT_TOKEN_ADDRESS, GROW_TOKEN_ADDRESS, IZE_TOKEN_ADDRESS, SWITCH_TOKEN_ADDRESS, USDC_TOKEN_ADDRESS, WETH_TOKEN_ADDRESS } from "@/lib/web3/constants";
+import { LineItem } from "@/hooks/types/commerce";
 
 const PRICE_MULTIPLIER_GOLD = 1.0;
 const PRICE_MULTIPLIER_SILVER = 1.0;
@@ -18,6 +19,15 @@ export const isGold = (name: string, sku: string) => {
 
 export const isSilver = (name: string, sku: string) => {
   return /silver/i.test(name ?? "") || /silver/i.test(sku ?? "");
+}
+
+export const getLineItemPrice = (prices: MineralPrices, tokenPrice: number, productPrice: number, item: LineItem) => {
+  const currencyMeta = item.meta_data?.find(x => x.key === "currency");
+  if (currencyMeta?.value === PaymentToken.USDC) {
+    // keep USD price exact
+    return productPrice;
+  }
+  return getPrice(prices, item.name, item.sku ?? "", tokenPrice, productPrice);
 }
 
 export const getPrice = (prices: MineralPrices, name: string, sku: string, tokenPrice: number, productPrice: number) => {

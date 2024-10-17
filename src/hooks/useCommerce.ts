@@ -2,7 +2,7 @@
 
 import { Order, Product } from "./types/commerce";
 import { Logger, useLogger } from "@/utils/useLogger";
-import { getPrice, getPrices } from "@/utils/priceUtil";
+import { getLineItemPrice, getPrice, getPrices } from "@/utils/priceUtil";
 import { getTokenPrice } from "@/utils/tokenPrice";
 import { PaymentToken } from "@/types/payment-token";
 export type { Order, Product } from "./types/commerce";
@@ -42,7 +42,10 @@ class CommerceApi {
         tokenPrice = await getTokenPrice(paymentToken);
         p.currency = paymentToken;
       }
-      const price = await getPrice(mineralPrices, p.name, p.sku, tokenPrice, parseFloat(p.price));
+      let price = await getPrice(mineralPrices, p.name, p.sku, tokenPrice, parseFloat(p.price));
+      if (p.currency === PaymentToken.USDC) {
+        price = parseFloat(p.price);  // use the price set in store, not converted to token price
+      }
       p.price = price.toFixedDecimal();
     }));
     return products;
@@ -67,10 +70,11 @@ class CommerceApi {
       const _subtotal = order.line_items?.reduce((acc, item) => {
         if (item.quantity === 0) return acc;
 
-        const price = getPrice(prices!, item.name!, item.sku ?? "", tokenPrice, item.price);
+        const price = getLineItemPrice(prices!, tokenPrice, item.price, item);
         item.price = price;
         item.total = (price * item.quantity).toString();
         item.subtotal = item.total;
+
         return acc + (price * item.quantity);
       }, 0) ?? 0;
       order.subtotal = _subtotal.toFixedDecimal(6);
