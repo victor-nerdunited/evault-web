@@ -46,7 +46,7 @@ interface CheckoutContextType {
   clearOrder: () => void;
   createOrder: () => Promise<Order>;
   removeItem: (itemId: number) => Promise<void>;
-  updateOrder: (order: Partial<Order>, paymentToken: PaymentToken) => Promise<void>;
+  updateOrder: (order: Partial<Order>, paymentToken?: PaymentToken) => Promise<void>;
   updateQuantity: (itemId: number, quantity: number) => Promise<void>;
   updatePaymentToken: (newPaymentToken: PaymentToken) => Promise<void>;
   updateTokenPrice: () => Promise<void>;
@@ -177,9 +177,9 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     await updateOrder(orderUpdate as Order, paymentToken);
   };
 
-  const updateOrder = async(order: Partial<Order>, paymentToken: PaymentToken): Promise<void> => {
-    order.currency = paymentToken;
-    order.currency_symbol = paymentToken;
+  const updateOrder = async(order: Partial<Order>, currentPaymentToken?: PaymentToken): Promise<void> => {
+    order.currency = currentPaymentToken ?? paymentToken;
+    order.currency_symbol = currentPaymentToken;
     if (!order.line_items) {
       order.line_items = cart.line_items.map(x => ({
         id: x.id,
@@ -188,7 +188,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         quantity: x.quantity
       } as LineItem))
     };
-    const result = await commerceLayer!.updateOrder(order, paymentToken);
+    const result = await commerceLayer!.updateOrder(order, order.currency as PaymentToken);
     result && dispatchCart(result);
   }
 
