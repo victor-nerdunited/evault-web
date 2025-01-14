@@ -43,6 +43,7 @@ const ProductCard: FC<ProductCardProps> = ({
     name,
     price,
     currency: currency,
+    stock_status,
   } = data;
   const priceNumber = parseFloat(price);
   const image_url = images[0].src;
@@ -265,17 +266,29 @@ const ProductCard: FC<ProductCardProps> = ({
                 {rating || ""} ({numberOfReviews || 0} reviews)
               </span>
             </div> */}
-            <ButtonPrimary
-              disabled={updatingCart || maxQtyReached}
-              loading={updatingCart}
-              className="shadow-lg"
-              fontSize="text-xs"
-              sizeClass="py-2 px-4"
-              onClick={() => notifyAddTocart()}
-            >
-              <BagIcon className="w-3.5 h-3.5 mb-0.5" />
-              <span className="ms-1">Add to cart</span>
-            </ButtonPrimary>
+            {stock_status === "outofstock"
+              ?
+                <ButtonPrimary
+                disabled={true}
+                className="shadow-lg"
+                fontSize="text-xs"
+                sizeClass="py-2 px-4"
+                >
+                  <span>Out of Stock</span>
+              </ButtonPrimary>
+              :
+                <ButtonPrimary
+                  disabled={updatingCart || maxQtyReached}
+                  loading={updatingCart}
+                  className="shadow-lg"
+                  fontSize="text-xs"
+                  sizeClass="py-2 px-4"
+                  onClick={() => notifyAddTocart()}
+                >
+                  <BagIcon className="w-3.5 h-3.5 mb-0.5" />
+                  <span className="ms-1">Add to cart</span>
+                </ButtonPrimary>
+            }
           </div>
         </div>
       </div>
